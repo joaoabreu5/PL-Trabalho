@@ -1,0 +1,53 @@
+Types = int|boolean|double|List[]
+
+deff sum(List[int]) -> int
+{
+    case [] = 0
+    case (x:xs) = x + sum(xs) 
+}
+
+deff soma_impares(List[int]) -> int
+{
+    case [] = 0
+    case (x:xs) = if not x % 2 == 0 then soma_impares(xs) else x + soma_impares(xs)
+}
+
+deff filtra_impares(List[int]) -> List[int]
+{
+    case [] = []
+    case (x:xs) = if not x % 2 == 0 then filtra_impares(xs) else x ++ filtra_impares(xs)
+}
+
+deff soma_impares_2(List[int]) -> int {
+    return sum . filtra_impares
+}
+
+deff mult(double,double)->double
+{
+    case a b = a*b
+}
+
+deff id(double)->double
+{
+    case a = a
+}
+
+deff func_const()->double 
+{
+    return 3
+}
+
+deff mult_List_Num(List[int], int) -> List[int]
+{
+    case [] i = []
+    case (x:xs) i = i*x : mult_List_Num xs i
+}
+
+deff nzp(int) -> int
+{
+    case a = if a > 0 then 1 elif a == 0 then 0 else -1
+}
+
+
+
+

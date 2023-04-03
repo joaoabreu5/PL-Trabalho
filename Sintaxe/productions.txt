@@ -1,0 +1,21 @@
+program -> func_def_list | ε
+
+func_def_list -> func_def | func_def_list func_def 
+
+func_def -> deff func_name func_io '{' func_body '}'
+
+func_name -> '[a-z]\w*'
+
+
+func_io -> func_input '->' func_output
+
+type -> 'int' | 'double' | 'boolean'
+type_list -> 'List['type']' | 'List[' type_list ']'
+func_type -> type_list | type
+
+func_input -> '(' incont
+incont -> ')' | incontent ')'
+incontent -> func_type incontent2
+incontent2 -> ε | ',' incontent
+
+func_output -> func_type
