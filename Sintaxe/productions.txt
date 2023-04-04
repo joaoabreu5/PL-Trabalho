@@ -92,6 +92,7 @@ factorListNum --> list_num | function_call
 
 ifstmt -> 'if' exprBoolean 'then' expr elifstmt 'else' expr
 elifstmt -> ε | 'elif' exprBoolean 'then' expr elifstmt
+
 ------------------------------------------------------------------------ Definição de listas
 
 list --> '[]' | list_num | list_boolean
