@@ -4,7 +4,8 @@ func_def_list -> func_def | func_def_list func_def
 
 func_def -> deff func_name func_io '{' func_body '}'
 
-func_name -> '[a-z]\w*'
+
+func_name -> ID
 
 
 func_io -> func_input '->' func_output
@@ -19,3 +20,35 @@ incontent -> func_type incontent2
 incontent2 -> ε | ',' incontent
 
 func_output -> func_type
+
+
+func_body -> case_list | return_struct
+
+
+case_list -> case_struct | case_list case_struct
+
+
+case_struct -> 'case' func_case_args '=' expr ';' 
+
+func_case_args -> '(' casecontent ')'
+casecontent -> func_case_var casecontent2
+casecontent2 -> ε | ',' casecontent
+
+
+
+
+
+func_case_var = ID | pmargs
+
+pmargs -> '[]' | '(ID:ID)'
+ID -> '[a-z]\w*'
+
+
+
+
+
+
+
+
+
+
