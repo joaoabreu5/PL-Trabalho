@@ -43,7 +43,9 @@ func_body --> case_list | return_struct
 
 case_list --> case_struct | case_list case_struct
 
-case_struct --> 'case' func_case_args '=' expr ';' 
+case_struct --> 'case' func_case_args '=' case_expr ';' 
+
+------------------------------------------------------------------------ Argumentos do "case"
 
 func_case_args --> '(' casecontent ')'
 casecontent --> func_case_var casecontent2
@@ -52,10 +54,18 @@ casecontent2 --> ε | ',' casecontent
 func_case_var = ID | pmargs
 pmargs --> '[]' | '(ID:ID)'
 
+
+------------------------------------------------------------------------ Expressões do "case"
+
+case_expr -> ifstmt | expr
+
 ------------------------------------------------------------------------ Definição do tipo de corpo "return" (Por definir "expr")
 
 return_struct --> 'return' expr ';'
 
+------------------------------------------------------------------------ Expressões
+
+expr -> exprNum | exprBoolean | exprList
 ------------------------------------------------------------------------ Expressões Numéricas
 
 exprNum --> termNum | exprNum op_sumsub termNum
@@ -78,6 +88,10 @@ factorListBoolean --> list_boolean | function_call
 exprListNum --> factorListNum | num_constant ':' exprListNum  | exprListNum '++' exprListNum
 factorListNum --> list_num | function_call
 
+------------------------------------------------------------------------ If statements
+
+ifstmt -> 'if' exprBoolean 'then' expr elifstmt 'else' expr
+elifstmt -> ε | 'elif' exprBoolean 'then' expr elifstmt
 ------------------------------------------------------------------------ Definição de listas
 
 list --> '[]' | list_num | list_boolean
@@ -121,11 +135,3 @@ op_sumsub = '+' | '--'
 op_multdiv = '*' | '/' | '%' | '//'
 op_logic-->  '&&' | '||' 
 op_comparator --> '>' | '>=' | '<' | '<=' | '==' | '!='
-
-
-
-
-
-
-
-
