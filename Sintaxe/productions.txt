@@ -1,49 +1,126 @@
-program -> func_def_list | ε
+------------------------------------------------------------------------ Programa
 
-func_def_list -> func_def | func_def_list func_def 
+program --> func_def_list | ε
 
-func_def -> deff func_name func_io '{' func_body '}'
+------------------------------------------------------------------------ Lista de definição de funções
 
+func_def_list --> func_def | func_def_list func_def 
 
-func_name -> ID
+------------------------------------------------------------------------ Definição de função
 
+func_def --> deff func_name func_io '{' func_body '}'
 
-func_io -> func_input '->' func_output
+------------------------------------------------------------------------ Nome da função
 
-type -> 'int' | 'double' | 'boolean'
-type_list -> 'List['type']' | 'List[' type_list ']'
-func_type -> type_list | type
+func_name --> ID
 
-func_input -> '(' incont
-incont -> ')' | incontent ')'
-incontent -> func_type incontent2
-incontent2 -> ε | ',' incontent
+------------------------------------------------------------------------ Definição de Input e Output da função
 
-func_output -> func_type
+func_io --> func_input '-->' func_output
 
+------------------------------------------------------------------------ Tipos de dados 
 
-func_body -> case_list | return_struct
+type --> 'int' | 'double' | 'boolean'
+type_list --> 'List['type']' | 'List[' type_list ']'
+func_type --> type_list | type
 
+------------------------------------------------------------------------ Input da função
 
-case_list -> case_struct | case_list case_struct
+func_input --> '(' incont
+incont --> ')' | incontent ')'
+incontent --> func_type incontent2
+incontent2 --> ε | ',' incontent
 
+------------------------------------------------------------------------ Output da função
 
-case_struct -> 'case' func_case_args '=' expr ';' 
+func_output --> func_type
 
-func_case_args -> '(' casecontent ')'
-casecontent -> func_case_var casecontent2
-casecontent2 -> ε | ',' casecontent
+------------------------------------------------------------------------ Definição de corpo da função
 
+func_body --> case_list | return_struct
 
+------------------------------------------------------------------------ Definição do tipo de corpo "case" (Por definir "expr")
 
+case_list --> case_struct | case_list case_struct
 
+case_struct --> 'case' func_case_args '=' expr ';' 
+
+func_case_args --> '(' casecontent ')'
+casecontent --> func_case_var casecontent2
+casecontent2 --> ε | ',' casecontent
 
 func_case_var = ID | pmargs
+pmargs --> '[]' | '(ID:ID)'
 
-pmargs -> '[]' | '(ID:ID)'
-ID -> '[a-z]\w*'
+------------------------------------------------------------------------ Definição do tipo de corpo "return" (Por definir "expr")
 
+return_struct --> 'return' expr ';'
 
+------------------------------------------------------------------------ Expressões Numéricas
+
+exprNum --> termNum | exprNum op_sumsub termNum
+termNum --> factorNum | termNum op_multdiv factorNum
+factorNum --> '(' exprNum ')' | ID | num_constant | function_call
+
+------------------------------------------------------------------------ Expressões Booleanas
+
+exprBoolean --> factorBoolean | exprBoolean op_logic factorBoolean 
+factorBoolean --> exprComparator | '!' factorBoolean | '(' exprBoolean ')' | ID | BOOLEAN | function_call
+exprComparator --> exprNum op_comparator exprNum | exprBoolean op_comparator exprBoolean | exprList op_comparator exprList
+
+------------------------------------------------------------------------ Expressões de Listas
+
+exprList --> exprListBoolean | exprListNum
+
+exprListBoolean --> factorListBoolean | BOOLEAN ':' exprListBoolean  | exprListBoolean '++' exprListBoolean
+factorListBoolean --> list_boolean | function_call
+
+exprListNum --> factorListNum | num_constant ':' exprListNum  | exprListNum '++' exprListNum
+factorListNum --> list_num | function_call
+
+------------------------------------------------------------------------ Definição de listas
+
+list --> '[]' | list_num | list_boolean
+
+------------------------------------------------------------------------ Listas Numéricas
+
+list_num --> '[' list_num_content ']'
+list_num_content --> num_constant list_num_content2
+list_num_content2 --> ε | ',' list_num_content
+
+------------------------------------------------------------------------ Listas Booleanas
+
+list_boolean --> '[' list_boolean_content ']'
+list_boolean_content --> BOOLEAN list_boolean_content2
+list_boolean_content2 --> ε | ',' list_boolean_content
+
+------------------------------------------------------------------------ Constantes
+
+num_constant --> INT | DOUBLE
+constant --> num_constant | BOOLEAN
+
+------------------------------------------------------------------------ Definição das constantes
+
+INT --> '--?[0--9]+'
+DOUBLE --> '--?[0--9]+\.[0--9]+'
+BOOLEAN --> 'true' | 'false'
+ID --> '[a--z]\w*'
+
+------------------------------------------------------------------------ Definição de uma chamada de função
+
+function_call --> func_name '(' function_call_input ')'
+
+function_call_input --> '(' fcincont
+fcincont --> ')' | fcincontent ')'
+fcincontent --> expr fcincontent2
+fcincontent2 --> ε | ',' fcincontent
+
+------------------------------------------------------------------------ Definição dos operadores
+
+op_sumsub = '+' | '--'
+op_multdiv = '*' | '/' | '%' | '//'
+op_logic-->  '&&' | '||' 
+op_comparator --> '>' | '>=' | '<' | '<=' | '==' | '!='
 
 
 
