@@ -9,13 +9,13 @@ deff sum(List[int]) -> int
 deff soma_impares(List[int]) -> int
 {
     case ([]) = 0;
-    case ((x:xs)) = if not x % 2 == 0 then soma_impares(xs) else x + soma_impares(xs);
+    case ((x:xs)) = if ! x % 2 == 0 then soma_impares(xs) else x + soma_impares(xs);
 }
 
 deff filtra_impares(List[int]) -> List[int]
 {
     case ([]) = [];
-    case ((x:xs)) = if not x % 2 == 0 then filtra_impares(xs) else x ++ filtra_impares(xs);
+    case ((x:xs)) = if ! x % 2 == 0 then filtra_impares(xs) else x ++ filtra_impares(xs);
 }
 
 deff soma_impares_2(List[int]) -> int {
