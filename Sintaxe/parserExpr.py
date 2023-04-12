@@ -34,9 +34,9 @@ def p_list(p):
          | LBRACKET list_elements RBRACKET 
     """
     if len(p) == 3:
-        p[0] = []  # return an empty list if there are no list elements
+        p[0] = []  
     else:
-        p[0] = p[2]  # return the list elements stored in p[2]
+        p[0] = p[2]  
 
     
 def p_list_elements(p):
@@ -48,8 +48,7 @@ def p_list_elements(p):
 
 def p_list_element(p):
     """ 
-    list_element  : constant
-                  | list
+    list_element  : expr
     """
     p[0] = p[1] 
     
