@@ -3,7 +3,6 @@ import my_lexer
 
 tokens = my_lexer.tokens
 
-
 start = 'expr'
 
 def p_expr(p):
@@ -184,10 +183,6 @@ def p_exprList(p):
     else:
         p[0] = p[1] + p[3]
 
-
-    
-
-     
 
 parser = yacc.yacc(debug=True, write_tables=True)
 
