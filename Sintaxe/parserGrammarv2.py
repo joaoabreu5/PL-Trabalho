@@ -232,7 +232,38 @@ deff mult_list_Num(list[int], int) -> list[int]
 deff nzp(int) -> int
 {
     case (a) = if a > 0 then 1 else if a == 0 then 0 else -1;
-}"""
+}
+
+deff fib(int) -> int
+{
+    case (soma(1)) = 0;
+    case (!True || 2^5>4) = i*x : mult_list_Num(i);
+    case (2*4) = fib(n-1) + fib(n-2);
+}
+
+deff maximo(list[float])->float
+{
+    case([x]) = x;
+    case(x:xs) = max (x,(maximo (xs)));
+}
+
+deff ord(list[int])->boolean
+{
+    case([])=True;
+    case([x])=True;
+    case(x:y:xs) = x <= y && ord(y:xs);
+}
+
+deff concatena(list[int],list[int])->list[int]
+{
+    case([],ys) = ys;
+    case((x:xs),ys) = x : concatena(xs,ys);
+}
+
+deff soma_impares_2(list[int]) -> int {
+    case(x) = sum . filtra_impares(x) : [1,2,3] ;
+}
+"""
 
 result = parser.parse(input_string)
 print("Done")
