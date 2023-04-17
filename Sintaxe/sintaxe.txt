@@ -1,51 +1,51 @@
-Types = int|boolean|double|List[]
+Types = int|boolean|float|list[]
 
-deff sum(List[int]) -> int
+deff sum(list[int]) -> int
 {
     case ([]) = 0;
     case ((x:xs)) = x + sum(xs); 
 }
 
-deff soma_impares(List[int]) -> int
+deff soma_impares(list[int]) -> int
 {
     case ([]) = 0;
     case ((x:xs)) = if ! x % 2 == 0 then soma_impares(xs) else x + soma_impares(xs);
 }
 
-deff filtra_impares(List[int]) -> List[int]
+deff filtra_impares(list[int]) -> list[int]
 {
     case ([]) = [];
     case ((x:xs)) = if ! x % 2 == 0 then filtra_impares(xs) else x ++ filtra_impares(xs);
 }
 
-deff soma_impares_2(List[int]) -> int {
-    return sum . filtra_impares;
+deff soma_impares_2(list[int]) -> int {
+    case(x) = sum . filtra_impares(x);
 }
 
-deff mult(double,double)->double
+deff mult(float,float)->float
 {
     case (a,b) = a*b;
 }
 
-deff id(double)->double
+deff id(float)->float
 {
     case (a) = a;
 }
 
-deff func_const()->double 
+deff func_const()->float 
 {
-    return 3;
+    case() = 3;
 }
 
-deff mult_List_Num(List[int], int) -> List[int]
+deff mult_list_Num(list[int], int) -> list[int]
 {
     case ([],i) = [];
-    case ((x:xs),i) = i*x : mult_List_Num(xs,i);
+    case ((x:xs),i) = i*x : mult_list_Num(xs,i);
 }
 
 deff nzp(int) -> int
 {
-    case (a) = if a > 0 then 1 elif a == 0 then 0 else -1;
+    case (a) = if a > 0 then 1 else if a == 0 then 0 else -1;
 }
 
 
