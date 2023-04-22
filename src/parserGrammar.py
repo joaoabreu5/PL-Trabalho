@@ -1,5 +1,5 @@
 import ply.yacc as yacc
-import src.lexer as lexer
+import lexer
 
 tokens = lexer.tokens
 
