@@ -1,7 +1,7 @@
 import ply.yacc as yacc
-import lexerv2
+import src.lexer as lexer
 
-tokens = lexerv2.tokens
+tokens = lexer.tokens
 
 start = 'program'
 
@@ -156,7 +156,6 @@ def p_factor(p):
            | list 
     """
 
-
 def p_function_composition(p):
     """ 
     function_composition : IDENTIFIER
@@ -175,19 +174,17 @@ def p_function_arguments(p):
                        | bool COMMA function_arguments
     """
 
-
-
-
 def p_error(p):
     if p:
         print(f"Syntax error at line {p.lineno}, position {p.lexpos}: Unexpected token '{p.value}'")
     else:
         print("Syntax error: Unexpected end of input")
 
-parser = yacc.yacc()
-parser.stack = []
 
-input_string = """deff sum(list[int]) -> int
+parser = yacc.yacc()
+
+input_string = """
+deff sum(list[int]) -> int
 {
     case ([]) = 0;
     case ((x:xs)) = x + sum(xs); 
@@ -272,4 +269,3 @@ print("Done")
 """while input_string:
     input_string = input(">> ")
     result = parser.parse(input_string)"""
-    
