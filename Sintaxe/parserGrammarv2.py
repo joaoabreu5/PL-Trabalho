@@ -160,7 +160,7 @@ def p_factor(p):
 def p_function_composition(p):
     """ 
     function_composition : IDENTIFIER
-                         | IDENTIFIER PERIOD IDENTIFIER
+                         | IDENTIFIER PERIOD function_composition
     """
     
 def p_function_call(p):
@@ -185,6 +185,7 @@ def p_error(p):
         print("Syntax error: Unexpected end of input")
 
 parser = yacc.yacc()
+parser.stack = []
 
 input_string = """deff sum(list[int]) -> int
 {
