@@ -1,5 +1,6 @@
 import ply.yacc as yacc
 import lexer
+import verify
 
 tokens = lexer.tokens
 
@@ -33,6 +34,8 @@ def p_case_statement(p):
     """ 
     case_statement : CASE case_input ASSIGN statement
     """
+    p.parser.cc+=1
+    print(str(p.parser.cc) + ":"+p[4])
 
 def p_case_input(p):
     """ 
@@ -45,31 +48,67 @@ def p_statement(p):
     statement : IF bool THEN statement ELSE statement
               | bool
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        t = verify.verify_UNARY_BOOL_OP(p[2])
+        verify.verify_ERROR(t,p.lineno(1),p.lexpos(1))
+        t = verify.verify_EQUALTYPE(p[4],p[6])
+        verify.verify_ERROR(t,p.lineno(3),p.lexpos(3))
+        
+        p[0] = t
+    
 
 def p_list(p):
     """
     list : LSQUARE RSQUARE
          | LSQUARE list_elements RSQUARE
     """
-    
-    
+    if len(p) == 3:
+        p[0] = "list_"
+    else:
+        p[0] = "list_" if p[2] == "any" else "list_"+p[2]
+
 def p_list_elements(p):
     """ 
     list_elements : bool
                   | bool COMMA list_elements
     """
+    # Armazena o tipo de cada elemento em uma lista
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        t = verify.verify_EQUALTYPE(p[1],p[3])
+        verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
+        
+        p[0] = t
     
 def p_bool(p):
     """ 
     bool : bool OR join 
          | join
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        t = verify.verify_BIN_BOOL_OP(p[1],p[3])
+        verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
+        
+        p[0] = t
+    
 
 def p_join(p):
     """ 
     join : join AND equality
          | equality
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        t = verify.verify_BIN_BOOL_OP(p[1],p[3])
+        verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
+        
+        p[0] = t
     
 def p_equality(p):
     """ 
@@ -77,6 +116,13 @@ def p_equality(p):
              | equality NE rel
              | rel
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        t = verify.verify_BIN_COMPARE_OP(p[1],p[3])
+        verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
+        
+        p[0] = t
     
 def p_rel(p):
     """
@@ -86,6 +132,13 @@ def p_rel(p):
         | listop GE listop
         | listop
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        t = verify.verify_BIN_COMPARE_OP(p[1],p[3])
+        verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
+        
+        p[0] = t
 
 def p_listop(p):
     """
@@ -93,12 +146,31 @@ def p_listop(p):
            | expr CONCAT listop
            | expr
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        if p[2] == ':':
+            t = verify.verify_COLON(p[1],p[3])
+        else:
+            t = verify.verify_CONCAT(p[1],p[3])
+            
+        verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
+        
+        p[0] = t
+        
 def p_expr(p):
     """ 
     expr : expr PLUS term
          | expr MINUS term
          | term
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        t = verify.verify_BIN_NUM_OP(p[1],p[3])
+        verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
+        
+        p[0] = t
 
 def p_term(p):
     """ 
@@ -108,12 +180,26 @@ def p_term(p):
          | term MOD exponential
          | exponential
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        t = verify.verify_BIN_NUM_OP(p[1],p[3])
+        verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
+        
+        p[0] = t
     
 def p_exponential(p):
     """ 
     exponential : exponential POWER unary
                 | unary
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        t = verify.verify_BIN_NUM_OP(p[1],p[3])
+        verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
+        
+        p[0] = t
     
 def p_unary(p):
     """ 
@@ -122,6 +208,15 @@ def p_unary(p):
           | PLUS unary
           | factor
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        if p[1] == '!':
+            t = verify.verify_UNARY_BOOL_OP(p[2])
+        else:
+            t = verify.verify_UNARY_NUM_OP(p[2])
+        verify.verify_ERROR(t,p.lineno(1),p.lexpos(1))
+        p[0] = t
 
 def p_factor(p):
     """
@@ -133,18 +228,22 @@ def p_factor(p):
            | BOOL
            | list 
     """
+    if len(p) > 2:
+        p[0] = p[2]
+    else:
+        p[0] = p[1]
 
 def p_INT(p):
     """ 
     INT : INTEGER
     """
-    p[0] = "int"
+    p[0] = "num"
 
 def p_FLO(p):
     """ 
     FLO : FLOAT
     """
-    p[0] = "float"
+    p[0] = "num"
     
 def p_BOOL(p):
     """ 
@@ -185,7 +284,7 @@ def p_error(p):
 
 
 parser = yacc.yacc()
-
+parser.cc = 0
 input_string = """
 deff sum:
 {
@@ -196,13 +295,13 @@ deff sum:
 deff soma_impares:
 {
     case ([]) = 0;
-    case ((x:xs)) = if ! x % 2 == 0 then soma_impares(xs) else x + soma_impares(xs);
+    case ((x:xs)) = if !(x % 2 == 0) then soma_impares(xs) else x + soma_impares(xs);
 }
 
 deff filtra_impares:
 {
     case ([]) = [];
-    case ((x:xs)) = if ! x % 2 == 0 then filtra_impares(xs) else x ++ filtra_impares(xs);
+    case ((x:xs)) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
 }
 
 deff soma_impares_2:{
@@ -232,7 +331,7 @@ deff mult_list_Num:
 
 deff nzp:
 {
-    case (a) = if a > 0 then 1 else if a == 0 then 0 else -1;
+    case (a) = if a > 0 then 1 else if a == 0 then 0 else a;
 }
 
 deff fib:

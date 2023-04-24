@@ -35,8 +35,8 @@ tokens = [
 ]
 
 reserved = {
-    'true': 'BOOLEAN',
-    'false': 'BOOLEAN',
+    'True': 'BOOLEAN',
+    'False': 'BOOLEAN',
     'if' : 'IF',
     'then': 'THEN',
     'else': 'ELSE',
