@@ -5,13 +5,7 @@ tokens = lexer.tokens
 
 start = 'program'
 
-def p_function_type(p):
-    """ 
-    function_type : T_INT
-                  | T_FLOAT
-                  | T_BOOLEAN
-                  | T_LIST LSQUARE function_type RSQUARE
-    """
+
 
 def p_program(p):
     """
@@ -26,24 +20,7 @@ def p_function_declarations(p):
 
 def p_function_declaration(p):
     """ 
-    function_declaration : DEFF IDENTIFIER function_input ARROW function_output LBRACE function_body RBRACE
-    """
-
-def p_function_input(p):
-    """
-    function_input : LPAREN RPAREN 
-                   | LPAREN function_input_arguments RPAREN
-    """
-
-def p_function_input_arguments(p):
-    """ 
-    function_input_arguments : function_type 
-                             | function_type COMMA function_input_arguments
-    """
-    
-def p_function_output(p):
-    """
-    function_output : function_type
+    function_declaration : DEFF IDENTIFIER COLON LBRACE function_body RBRACE
     """
 
 def p_function_body(p):
@@ -74,6 +51,7 @@ def p_list(p):
     list : LSQUARE RSQUARE
          | LSQUARE list_elements RSQUARE
     """
+    
     
 def p_list_elements(p):
     """ 
@@ -148,14 +126,38 @@ def p_unary(p):
 def p_factor(p):
     """
     factor : LPAREN bool RPAREN
-           | IDENTIFIER
+           | ID
            | function_call
-           | INTEGER
-           | FLOAT
-           | BOOLEAN
+           | INT
+           | FLO
+           | BOOL
            | list 
     """
 
+def p_INT(p):
+    """ 
+    INT : INTEGER
+    """
+    p[0] = "int"
+
+def p_FLO(p):
+    """ 
+    FLO : FLOAT
+    """
+    p[0] = "float"
+    
+def p_BOOL(p):
+    """ 
+    BOOL : BOOLEAN
+    """
+    p[0] = "boolean"
+    
+def p_ID(p):
+    """ 
+    ID : IDENTIFIER
+    """
+    p[0] = "any"
+    
 def p_function_composition(p):
     """ 
     function_composition : IDENTIFIER
@@ -167,6 +169,7 @@ def p_function_call(p):
     function_call : function_composition LPAREN function_arguments RPAREN
                   | function_composition LPAREN RPAREN 
     """
+    p[0] = "any"
     
 def p_function_arguments(p):
     """ 
@@ -184,81 +187,82 @@ def p_error(p):
 parser = yacc.yacc()
 
 input_string = """
-deff sum(list[int]) -> int
+deff sum:
 {
     case ([]) = 0;
     case ((x:xs)) = x + sum(xs); 
 }
 
-deff soma_impares(list[int]) -> int
+deff soma_impares:
 {
     case ([]) = 0;
     case ((x:xs)) = if ! x % 2 == 0 then soma_impares(xs) else x + soma_impares(xs);
 }
 
-deff filtra_impares(list[int]) -> list[int]
+deff filtra_impares:
 {
     case ([]) = [];
     case ((x:xs)) = if ! x % 2 == 0 then filtra_impares(xs) else x ++ filtra_impares(xs);
 }
 
-deff soma_impares_2(list[int]) -> int {
+deff soma_impares_2:{
     case(x) = sum . filtra_impares(x);
 }
 
-deff mult(float,float)->float
+deff mult:
 {
     case (a,b) = a*b;
 }
 
-deff id(float)->float
+deff id:
 {
     case (a) = a;
 }
 
-deff func_const()->float 
+deff func_const:
 {
     case() = 3;
 }
 
-deff mult_list_Num(list[int], int) -> list[int]
+deff mult_list_Num:
 {
     case ([],i) = [];
     case ((x:xs),i) = i*x : mult_list_Num(xs,i);
 }
 
-deff nzp(int) -> int
+deff nzp:
 {
     case (a) = if a > 0 then 1 else if a == 0 then 0 else -1;
 }
 
-deff fib(int) -> int
+deff fib:
 {
     case (soma(1)) = 0;
     case (!True || 2^5>4) = i*x : mult_list_Num(i);
     case (2*4) = fib(n-1) + fib(n-2);
 }
 
-deff maximo(list[float])->float
+deff maximo:
 {
     case([x]) = x;
     case(x:xs) = max (x,(maximo (xs)));
 }
 
-deff ord(list[int])->boolean
+deff ord:
 {
     case([])=True;
     case([x])=True;
     case(x:y:xs) = x <= y && ord(y:xs);
 }
 
-deff concatena(list[int],list[int])->list[int]
+deff concatena:
 {
     case([],ys) = ys;
     case((x:xs),ys) = x : concatena(xs,ys);
 }
 
-deff soma_impares_2(list[int]) -> int {
+deff soma_impares_2:
+{
     case(x) = sum . filtra_impares(x) : [1,2,3] ;
 }
 """

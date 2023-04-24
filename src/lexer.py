@@ -30,7 +30,6 @@ tokens = [
     'OR',
     'NOT',
     'PERIOD',
-    'ARROW',
     'SEMICOLON',
     'ASSIGN'
 ]
@@ -42,16 +41,11 @@ reserved = {
     'then': 'THEN',
     'else': 'ELSE',
     'deff' : 'DEFF',
-    'int': 'T_INT',
-    'float': 'T_FLOAT',
-    'boolean': 'T_BOOLEAN',
-    'list': 'T_LIST',
     'case': 'CASE'
 }
 
 tokens += list(set(reserved.values()))
 
-t_ARROW = r'->'
 t_PERIOD = r'\.'
 t_COLON = r':'
 t_SEMICOLON = r';'
