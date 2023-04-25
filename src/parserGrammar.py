@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 import lexer
 import verify
+import re
 
 tokens = lexer.tokens
 
@@ -21,7 +22,7 @@ def p_function_declarations(p):
 
 def p_function_declaration(p):
     """ 
-    function_declaration : DEFF IDENTIFIER COLON LBRACE function_body RBRACE
+    function_declaration : DEFF IDENTIFIER LBRACE function_body RBRACE
     """
 
 def p_function_body(p):
@@ -35,13 +36,74 @@ def p_case_statement(p):
     case_statement : CASE case_input ASSIGN statement
     """
     p.parser.cc+=1
-    print(str(p.parser.cc) + ":"+p[4])
+    print(str(p.parser.cc) + ":\n"+str(p[4])+"\n")
 
 def p_case_input(p):
     """ 
     case_input : LPAREN RPAREN
-               | LPAREN function_arguments RPAREN
+               | LPAREN case_arguments RPAREN
     """
+
+def p_case_arguments(p):
+    """ 
+    case_arguments : case_argument
+                   | case_argument COMMA case_arguments
+    """
+    
+def p_case_argument(p):
+    """ 
+    case_argument : constant
+                  | case_list
+                  | IDENTIFIER 
+    """
+ 
+def p_constant(p):
+    """ 
+    constant : FLO
+             | INT
+             | BOOL
+    """
+    p[0] = p[1]
+    
+def p_case_list(p):
+    """
+    case_list : case_empty
+              | case_headtail
+    """
+    p=p[1]
+    p["type"] = "list"
+
+def p_case_empty(p):
+    """ 
+    case_empty : LSQUARE RSQUARE 
+    """
+    p[0] = {}
+    p[0]["vars"] = []
+   
+ 
+
+def p_case_headtail(p):
+    """ 
+    case_headtail : IDENTIFIER COLON case_headtail2 
+    """
+    p[0] = {}
+    p[0]["vars"] = [p[0]] + p[3]["vars"]
+  
+    
+def p_case_headtail2(p):
+    """ 
+    case_headtail2 : case_headtailID
+                   | case_headtail
+    """
+    p[0] = p[1]
+    
+def p_case_headtailID(p):
+    """
+    case_headtailID : IDENTIFIER
+    """
+    p[0] = {}
+    p[0]["vars"] = [p[1]]
+
     
 def p_statement(p):
     """ 
@@ -51,12 +113,14 @@ def p_statement(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_UNARY_BOOL_OP(p[2])
+        t = verify.verify_UNARY_BOOL_OP(p[2]["type"])
         verify.verify_ERROR(t,p.lineno(1),p.lexpos(1))
-        t = verify.verify_EQUALTYPE(p[4],p[6])
+        t = verify.verify_EQUALTYPE(p[4]["type"],p[6]["type"])
         verify.verify_ERROR(t,p.lineno(3),p.lexpos(3))
         
-        p[0] = t
+        p[0] = {}
+        p[0]["type"] = t
+        p[0]["python"] = "if " + p[2]["python"]+":\n\t"+re.sub(r'\n','\n\t',p[4]["python"])+"\nelse:\n\t" + re.sub(r'\n','\n\t',p[6]["python"])
     
 
 def p_list(p):
@@ -65,9 +129,13 @@ def p_list(p):
          | LSQUARE list_elements RSQUARE
     """
     if len(p) == 3:
-        p[0] = "list_"
+        p[0] = {}
+        p[0]["type"]  = "list_"
+        p[0]["python"] = "[]"
     else:
-        p[0] = "list_" if p[2] == "any" else "list_"+p[2]
+        p[0] = {}
+        p[0]["type"] = "list_" if p[2]["type"] == "any" else "list_"+p[2]["type"]
+        p[0]["python"] = "[" + p[2]["python"] + "]"
 
 def p_list_elements(p):
     """ 
@@ -76,12 +144,14 @@ def p_list_elements(p):
     """
     # Armazena o tipo de cada elemento em uma lista
     if len(p) == 2:
-        p[0] = p[1]
+        p[0] =  p[1]
     else:
-        t = verify.verify_EQUALTYPE(p[1],p[3])
+        t = verify.verify_EQUALTYPE(p[1]["type"],p[3]["type"])
         verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
         
-        p[0] = t
+        p[0] = {}
+        p[0]["type"] = t
+        p[0]["python"] = p[1]["python"] + ", " + p[3]["python"]
     
 def p_bool(p):
     """ 
@@ -91,10 +161,12 @@ def p_bool(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_BIN_BOOL_OP(p[1],p[3])
+        t = verify.verify_BIN_BOOL_OP(p[1]["type"],p[3]["type"])
         verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
         
-        p[0] = t
+        p[0] = {}
+        p[0]["type"] = t
+        p[0]["python"] = p[1]["python"] + " or "+p[3]["python"]
     
 
 def p_join(p):
@@ -105,10 +177,12 @@ def p_join(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_BIN_BOOL_OP(p[1],p[3])
+        t = verify.verify_BIN_BOOL_OP(p[1]["type"],p[3]["type"])
         verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
         
-        p[0] = t
+        p[0] = {}
+        p[0]["type"] = t
+        p[0]["python"] = p[1]["python"] + " and "+p[3]["python"]
     
 def p_equality(p):
     """ 
@@ -119,10 +193,12 @@ def p_equality(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_BIN_COMPARE_OP(p[1],p[3])
+        t = verify.verify_BIN_COMPARE_OP(p[1]["type"],p[3]["type"])
         verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
         
-        p[0] = t
+        p[0] = {}
+        p[0]["type"] = t
+        p[0]["python"] = p[1]["python"] + " " + p[2] + " " +p[3]["python"]
     
 def p_rel(p):
     """
@@ -135,10 +211,11 @@ def p_rel(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_BIN_COMPARE_OP(p[1],p[3])
+        t = verify.verify_BIN_COMPARE_OP(p[1]["type"],p[3]["type"])
         verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
-        
-        p[0] = t
+        p[0] = {}
+        p[0]["type"] = t
+        p[0]["python"] = p[1]["python"] + " " + p[2]+" "+p[3]["python"]
 
 def p_listop(p):
     """
@@ -149,14 +226,17 @@ def p_listop(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
+        p[0] = {}
         if p[2] == ':':
-            t = verify.verify_COLON(p[1],p[3])
+            t = verify.verify_COLON(p[1]["type"],p[3]["type"])
+            p[0]["python"] = p[3]["python"]+".insert(0, " + p[1]["python"]+")"
         else:
-            t = verify.verify_CONCAT(p[1],p[3])
+            t = verify.verify_CONCAT(p[1]["type"],p[3]["type"])
+            p[0]["python"] = p[1]["python"] + ".extend("+p[3]["python"]+")"
             
         verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
         
-        p[0] = t
+        p[0]["type"] = t
         
 def p_expr(p):
     """ 
@@ -167,10 +247,12 @@ def p_expr(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_BIN_NUM_OP(p[1],p[3])
+        t = verify.verify_BIN_NUM_OP(p[1]["type"],p[3]["type"])
         verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
         
-        p[0] = t
+        p[0] = {}
+        p[0]["type"] = t
+        p[0]["python"] = p[1]["python"] + " " +p[2]+" "+p[3]["python"]
 
 def p_term(p):
     """ 
@@ -183,10 +265,13 @@ def p_term(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_BIN_NUM_OP(p[1],p[3])
+        t = verify.verify_BIN_NUM_OP(p[1]["type"],p[3]["type"])
         verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
         
-        p[0] = t
+        p[0] = {}
+        p[0]["type"]= t
+        p[0]["python"] = p[1]["python"] + " " +p[2]+ " " + p[3]["python"]
+        
     
 def p_exponential(p):
     """ 
@@ -196,10 +281,12 @@ def p_exponential(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_BIN_NUM_OP(p[1],p[3])
+        t = verify.verify_BIN_NUM_OP(p[1]["type"],p[3]["type"])
         verify.verify_ERROR(t,p.lineno(2),p.lexpos(2))
         
-        p[0] = t
+        p[0] = {}
+        p[0]["type"] = t
+        p[0]["python"] = p[1]["python"] + " " +p[2]+" "+p[3]["python"]
     
 def p_unary(p):
     """ 
@@ -212,11 +299,14 @@ def p_unary(p):
         p[0] = p[1]
     else:
         if p[1] == '!':
-            t = verify.verify_UNARY_BOOL_OP(p[2])
+            t = verify.verify_UNARY_BOOL_OP(p[2]["type"])
+            p[1] = 'not'
         else:
-            t = verify.verify_UNARY_NUM_OP(p[2])
+            t = verify.verify_UNARY_NUM_OP(p[2]["type"])
         verify.verify_ERROR(t,p.lineno(1),p.lexpos(1))
-        p[0] = t
+        p[0] = {}
+        p[0]["type"] = t
+        p[0]["python"] = p[1] + " " +p[2]["python"]
 
 def p_factor(p):
     """
@@ -230,6 +320,7 @@ def p_factor(p):
     """
     if len(p) > 2:
         p[0] = p[2]
+        p[0]["python"] = "(" + p[2]["python"]+")"
     else:
         p[0] = p[1]
 
@@ -237,45 +328,66 @@ def p_INT(p):
     """ 
     INT : INTEGER
     """
-    p[0] = "num"
+    p[0] = {}
+    p[0]["type"] = "num"
+    p[0]["python"] = p[1]
 
 def p_FLO(p):
     """ 
     FLO : FLOAT
     """
-    p[0] = "num"
+    p[0] = {}
+    p[0]["type"] = "num"
+    p[0]["python"] = p[1]
     
 def p_BOOL(p):
     """ 
     BOOL : BOOLEAN
     """
-    p[0] = "boolean"
+    p[0] = {}
+    p[0]["type"] = "boolean"
+    p[0]["python"] = p[1]
     
 def p_ID(p):
     """ 
     ID : IDENTIFIER
     """
-    p[0] = "any"
+    p[0] = {}
+    p[0]["type"] = "any"
+    p[0]["python"] = p[1]
     
 def p_function_composition(p):
     """ 
     function_composition : IDENTIFIER
                          | IDENTIFIER PERIOD function_composition
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[1] +"("+p[3]+")"
     
 def p_function_call(p):
     """ 
     function_call : function_composition LPAREN function_arguments RPAREN
                   | function_composition LPAREN RPAREN 
     """
-    p[0] = "any"
+    p[0] = {}
+    p[0]["type"] = "any"
+    if len(p) == 4:
+        p[0]["python"] = p[1]+"()"
+    else:
+        p[0]["python"] = p[1]+"("+ p[3] +")" if p[1][-1] != ")" else p[1][:-1] + "("+ p[3] +"))"
     
 def p_function_arguments(p):
     """ 
     function_arguments : bool
                        | bool COMMA function_arguments
     """
-
+    if len(p) == 2:
+        p[0] = p[1]["python"]
+    else:
+        p[0] = p[1]["python"] +", " + p[3]
+        
 def p_error(p):
     if p:
         print(f"Syntax error at line {p.lineno}, position {p.lexpos}: Unexpected token '{p.value}'")
@@ -286,83 +398,84 @@ def p_error(p):
 parser = yacc.yacc()
 parser.cc = 0
 input_string = """
-deff sum:
+deff sum
 {
     case ([]) = 0;
     case ((x:xs)) = x + sum(xs); 
 }
 
-deff soma_impares:
+deff soma_impares
 {
     case ([]) = 0;
     case ((x:xs)) = if !(x % 2 == 0) then soma_impares(xs) else x + soma_impares(xs);
 }
 
-deff filtra_impares:
+deff filtra_impares
 {
     case ([]) = [];
-    case ((x:xs)) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
+    case (x:xs) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
 }
 
-deff soma_impares_2:{
+deff soma_impares_2{
     case(x) = sum . filtra_impares(x);
 }
 
-deff mult:
+deff mult
 {
     case (a,b) = a*b;
 }
 
-deff id:
+deff id
 {
     case (a) = a;
 }
 
-deff func_const:
+deff func_const
 {
     case() = 3;
 }
 
-deff mult_list_Num:
+deff mult_list_Num
 {
     case ([],i) = [];
-    case ((x:xs),i) = i*x : mult_list_Num(xs,i);
+    case (x:xs,i) = i*x : mult_list_Num(xs,i);
 }
 
-deff nzp:
+deff nzp
 {
     case (a) = if a > 0 then 1 else if a == 0 then 0 else a;
 }
 
-deff fib:
+deff fib
 {
-    case (soma(1)) = 0;
-    case (!True || 2^5>4) = i*x : mult_list_Num(i);
-    case (2*4) = fib(n-1) + fib(n-2);
+    case (0) = 0;
+    case (True) = i*x : mult_list_Num(i);
+    case (8) = fib(n-1) + fib(n-2);
 }
 
-deff maximo:
+deff maximo
 {
-    case([x]) = x;
-    case(x:xs) = max (x,(maximo (xs)));
+    case([]) = x;
+    case(x:xs) = max (x,maximo (xs));
 }
 
-deff ord:
+deff ord
 {
     case([])=True;
-    case([x])=True;
+    case([])=True;
     case(x:y:xs) = x <= y && ord(y:xs);
 }
 
-deff concatena:
+
+deff concatena
 {
     case([],ys) = ys;
-    case((x:xs),ys) = x : concatena(xs,ys);
+    case(x:xs,ys) = x : concatena(xs,ys);
 }
 
-deff soma_impares_2:
+deff soma_impares_2
 {
-    case(x) = sum . filtra_impares(x) : [1,2,3] ;
+    case() = sum . filtra_impares(x) : [1,2,3] ;
 }
 """
 
