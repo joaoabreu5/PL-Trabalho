@@ -2,6 +2,7 @@ import ply.yacc as yacc
 import lexer
 import verify
 import re
+from caseinput import CaseInput
 
 tokens = lexer.tokens
 
@@ -24,12 +25,32 @@ def p_function_declaration(p):
     """ 
     function_declaration : DEFF IDENTIFIER LBRACE function_body RBRACE
     """
-
+    print(f"{p[2]} : {str(p[4])}\n\n")
+    setLen = set()
+    setInput = set()
+    for l in p[4]:
+        setLen.add(len(l))
+        setInput.add(CaseInput(l))
+    
+    if len(setLen) > 1:
+        #erro inputs com tamanhos diferentes
+        print(f"Erro inputs com tamanhos diferentes na função {p[2]}")
+        pass
+    
+    if len(setInput) != len(p[4]):
+        #erro inputs iguais
+        print(f"Erro inputs iguais na função {p[2]}")
+        pass
+    
 def p_function_body(p):
     """ 
     function_body : case_statement SEMICOLON
                   | case_statement SEMICOLON function_body
     """
+    if len(p) == 3:
+        p[0] = [p[1]]
+    else:
+        p[0] = [p[1]] + p[3]
 
 def p_case_statement(p):
     """ 
@@ -37,26 +58,39 @@ def p_case_statement(p):
     """
     p.parser.cc+=1
     print(str(p.parser.cc) + ":\n"+str(p[4])+"\n")
+    
+        
+    p[0] = p[2]
 
 def p_case_input(p):
     """ 
     case_input : LPAREN RPAREN
                | LPAREN case_arguments RPAREN
     """
+    if len(p) == 3:
+        p[0] = []
+    else:
+        p[0] = p[2]
 
 def p_case_arguments(p):
     """ 
     case_arguments : case_argument
                    | case_argument COMMA case_arguments
     """
+    if len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = [p[1]] + p[3]
     
 def p_case_argument(p):
     """ 
     case_argument : constant
                   | case_list
-                  | IDENTIFIER 
+                  | ID
     """
- 
+    p[0] = p[1]
+
+    
 def p_constant(p):
     """ 
     constant : FLO
@@ -70,15 +104,15 @@ def p_case_list(p):
     case_list : case_empty
               | case_headtail
     """
-    p=p[1]
-    p["type"] = "list"
+    p[0]=p[1]
+    
 
 def p_case_empty(p):
     """ 
     case_empty : LSQUARE RSQUARE 
     """
     p[0] = {}
-    p[0]["vars"] = []
+    p[0]["type"] = "list_empty"
    
  
 
@@ -87,7 +121,8 @@ def p_case_headtail(p):
     case_headtail : IDENTIFIER COLON case_headtail2 
     """
     p[0] = {}
-    p[0]["vars"] = [p[0]] + p[3]["vars"]
+    p[0]["type"] = "list_ht"
+    p[0]["vars"] = [p[1]] + p[3]["vars"]
   
     
 def p_case_headtail2(p):
@@ -401,13 +436,13 @@ input_string = """
 deff sum
 {
     case ([]) = 0;
-    case ((x:xs)) = x + sum(xs); 
+    case (x:xs) = x + sum(xs); 
 }
 
 deff soma_impares
 {
     case ([]) = 0;
-    case ((x:xs)) = if !(x % 2 == 0) then soma_impares(xs) else x + soma_impares(xs);
+    case (x:xs) = if !(x % 2 == 0) then soma_impares(xs) else x + soma_impares(xs);
 }
 
 deff filtra_impares
@@ -449,21 +484,23 @@ deff nzp
 deff fib
 {
     case (0) = 0;
+    case (a) = 1;
     case (True) = i*x : mult_list_Num(i);
     case (8) = fib(n-1) + fib(n-2);
 }
 
 deff maximo
 {
-    case([]) = x;
-    case(x:xs) = max (x,maximo (xs));
+    case([],a) = x;
+    case(x:xs,b) = max (x,maximo (xs));
 }
 
 deff ord
 {
     case([])=True;
-    case([])=True;
+    case(x:xs)=True;
     case(x:y:xs) = x <= y && ord(y:xs);
+    case(h:dh:t) = x <= y && ord(y:xs);
 }
 
 

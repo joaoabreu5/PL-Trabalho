@@ -1,0 +1,122 @@
+1:
+{'type': 'num', 'python': '0'}
+
+2:
+{'type': 'num', 'python': 'x + sum(xs)'}
+
+sum : [[{'type': 'list_empty'}], [{'type': 'list_ht', 'vars': ['x', 'xs']}]]
+
+
+3:
+{'type': 'num', 'python': '0'}
+
+4:
+{'type': 'num', 'python': 'if not (x % 2 == 0):\n\tsoma_impares(xs)\nelse:\n\tx + soma_impares(xs)'}
+
+soma_impares : [[{'type': 'list_empty'}], [{'type': 'list_ht', 'vars': ['x', 'xs']}]]
+
+
+5:
+{'type': 'list_', 'python': '[]'}
+
+6:
+{'type': 'any', 'python': 'if not (x % 2 == 0):\n\tfiltra_impares(xs)\nelse:\n\tx.extend(filtra_impares(xs))'}
+
+filtra_impares : [[{'type': 'list_empty'}], [{'type': 'list_ht', 'vars': ['x', 'xs']}]]
+
+
+7:
+{'type': 'any', 'python': 'sum(filtra_impares(x))'}
+
+soma_impares_2 : [[{'type': 'any', 'python': 'x'}]]
+
+
+8:
+{'type': 'num', 'python': 'a * b'}
+
+mult : [[{'type': 'any', 'python': 'a'}, {'type': 'any', 'python': 'b'}]]
+
+
+9:
+{'type': 'any', 'python': 'a'}
+
+id : [[{'type': 'any', 'python': 'a'}]]
+
+
+10:
+{'type': 'num', 'python': '3'}
+
+func_const : [[]]
+
+
+11:
+{'type': 'list_', 'python': '[]'}
+
+12:
+{'python': 'mult_list_Num(xs, i).insert(0, i * x)', 'type': 'list_num'}
+
+mult_list_Num : [[{'type': 'list_empty'}, {'type': 'any', 'python': 'i'}], [{'type': 'list_ht', 'vars': ['x', 'xs']}, {'type': 'any', 'python': 'i'}]]
+
+
+13:
+{'type': 'num', 'python': 'if a > 0:\n\t1\nelse:\n\tif a == 0:\n\t\t0\n\telse:\n\t\ta'}
+
+nzp : [[{'type': 'any', 'python': 'a'}]]
+
+
+14:
+{'type': 'num', 'python': '0'}
+
+15:
+{'type': 'num', 'python': '1'}
+
+16:
+{'python': 'mult_list_Num(i).insert(0, i * x)', 'type': 'list_num'}
+
+17:
+{'type': 'num', 'python': 'fib(n - 1) + fib(n - 2)'}
+
+fib : [[{'type': 'num', 'python': '0'}], [{'type': 'any', 'python': 'a'}], [{'type': 'boolean', 'python': 'True'}], [{'type': 'num', 'python': '8'}]]
+
+
+18:
+{'type': 'any', 'python': 'x'}
+
+19:
+{'type': 'any', 'python': 'max(x, maximo(xs))'}
+
+maximo : [[{'type': 'list_empty'}, {'type': 'any', 'python': 'a'}], [{'type': 'list_ht', 'vars': ['x', 'xs']}, {'type': 'any', 'python': 'b'}]]
+
+
+20:
+{'type': 'boolean', 'python': 'True'}
+
+21:
+{'type': 'boolean', 'python': 'True'}
+
+22:
+{'type': 'boolean', 'python': 'x <= y and ord(xs.insert(0, y))'}
+
+23:
+{'type': 'boolean', 'python': 'x <= y and ord(xs.insert(0, y))'}
+
+ord : [[{'type': 'list_empty'}], [{'type': 'list_ht', 'vars': ['x', 'xs']}], [{'type': 'list_ht', 'vars': ['x', 'y', 'xs']}], [{'type': 'list_ht', 'vars': ['h', 'dh', 't']}]]
+
+
+Erro inputs iguais na função ord
+24:
+{'type': 'any', 'python': 'ys'}
+
+25:
+{'python': 'concatena(xs, ys).insert(0, x)', 'type': 'any'}
+
+concatena : [[{'type': 'list_empty'}, {'type': 'any', 'python': 'ys'}], [{'type': 'list_ht', 'vars': ['x', 'xs']}, {'type': 'any', 'python': 'ys'}]]
+
+
+26:
+{'python': '[1, 2, 3].insert(0, sum(filtra_impares(x)))', 'type': 'list_num'}
+
+soma_impares_2 : [[]]
+
+
+Done

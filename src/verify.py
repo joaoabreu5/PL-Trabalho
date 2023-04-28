@@ -103,4 +103,3 @@ def verify_ERROR(t, line, col):
     if t == None:
             raise TypeError(f'Type error at line {line}, column {col}')
     
-   
