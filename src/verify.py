@@ -1,3 +1,7 @@
+from singleinput import SingleInput
+import re
+
+
 def verify_UNARY_BOOL_OP(t):
     r = None
     if t == 'any' or t == 'boolean':
@@ -103,3 +107,65 @@ def verify_ERROR(t, line, col):
     if t == None:
             raise TypeError(f'Type error at line {line}, column {col}')
     
+
+def verify_group_by_level(lst):
+    tree = {}
+    for path in lst:
+        node = tree 
+        for e in path:
+            element = SingleInput(e)
+            if element not in node:
+                node[element] = {}
+            node = node[element]
+            
+    return tree
+
+def verify_fill(list, tree):
+    for element in list:
+        path = element["input"]
+        node = tree
+        laste = node
+        aux = node
+        for e in path:
+            laste = SingleInput(e)
+            aux = node
+            node = node[laste]
+        aux[laste] = element["statement"]
+
+
+    return tree
+
+def str_tree(dict,level, length):
+    lenD = len(dict)
+    j = 0
+    if level == length:
+        ret = dict+"\n"
+    else:
+        ret = ""
+        for i in dict:
+            if i.inputDict["type"] == 'any':
+                ret += i.inputDict["python"] + " = arg"+str(level) + "\n"+ str_tree(dict[i],level+1, length)
+            else:
+                if j>0:
+                   ret+="el" 
+                if i.inputDict["type"] in ['num','boolean']:
+                    ret += "if arg" +str(level) +" == " +i.inputDict["python"] +":\n\t" + re.sub('\n','\n\t',str_tree(dict[i],level+1,length))
+                elif i.inputDict["type"] == "list_ht":
+                    aux = ""
+                    index = 1
+                    aux += i.inputDict["vars"][0] + " = arg"+str(level)+"[0]\n"
+                    while index< len(i.inputDict["vars"]):
+                        if index == len(i.inputDict["vars"]) -1:
+                            aux+=i.inputDict["vars"][index] + " = arg"+str(level)+"["+str(index)+":]\n"
+                        else:
+                         aux += i.inputDict["vars"][index] + " = arg"+str(level)+"["+str(index)+"]\n"
+                        index+=1
+                    
+                    ret += "if len(arg" +str(level) +") >= " + str(len(i.inputDict["vars"])-1) +":\n\t" + re.sub('\n','\n\t',aux) + re.sub('\n','\n\t',str_tree(dict[i],level+1,length))
+                else:
+                    ret += "if len(arg" +str(level) +") == 0" +":\n\t" + re.sub('\n','\n\t',str_tree(dict[i],level+1,length))
+            if j != lenD -1:
+                ret+="\n"
+            j+=1
+            
+    return ret

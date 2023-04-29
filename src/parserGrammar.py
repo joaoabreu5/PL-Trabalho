@@ -14,23 +14,39 @@ def p_program(p):
     """
     program : function_declarations
     """
+    code = p[1]["python"]
+    functions = p[1]["functions"]
+    
+    if (len(set(functions)) < len(functions)):
+        print("Erro função já definida")
+        
+    for func in functions:
+        code = re.sub(func,"f_"+func+"_",code)
+    print(code)
 
 def p_function_declarations(p):
     """ 
     function_declarations : function_declaration
                           | function_declaration function_declarations
     """
-
+    if len(p) == 2:
+        p[0] = {}
+        p[0]["functions"] = [p[1]["func_name"]]
+        p[0]["python"] = p[1]["python"]
+    else:
+        p[0] = {}
+        p[0]["functions"] = [p[1]["func_name"]] + p[2]["functions"]
+        p[0]["python"] = p[1]["python"] + p[2]["python"]
 def p_function_declaration(p):
     """ 
     function_declaration : DEFF IDENTIFIER LBRACE function_body RBRACE
     """
-    print(f"{p[2]} : {str(p[4])}\n\n")
+    #print(f"{p[2]} : {str(p[4])}\n\n")
     setLen = set()
     setInput = set()
     for l in p[4]:
-        setLen.add(len(l))
-        setInput.add(CaseInput(l))
+        setLen.add(len(l["input"]))
+        setInput.add(CaseInput(l["input"]))
     
     if len(setLen) > 1:
         #erro inputs com tamanhos diferentes
@@ -42,6 +58,29 @@ def p_function_declaration(p):
         print(f"Erro inputs iguais na função {p[2]}")
         pass
     
+    lenArgs = setLen.pop()
+    if lenArgs > 0:
+        lista = map(lambda x: x.inputCase, sorted(list(setInput),reverse=True))
+        tree = verify.verify_group_by_level(list(lista))
+        tree = verify.verify_fill(p[4],tree)
+        pythonString = verify.str_tree(tree,0,lenArgs)
+    else:
+        pythonString = p[4][0]["statement"]
+    
+    func_declare_string = "def "+p[2]+"("
+    for i in range(lenArgs):
+        if i != lenArgs-1:
+            func_declare_string += "arg"+str(i)+", "
+        else:
+            func_declare_string += "arg"+str(i)
+    func_declare_string +="):"
+    full_function = func_declare_string + "\n\t"+re.sub("\n","\n\t",pythonString)+"\n\n"
+    p[0] = {}
+    p[0]["func_name"] = p[2]
+    p[0]["python"] = full_function
+       
+
+
 def p_function_body(p):
     """ 
     function_body : case_statement SEMICOLON
@@ -56,11 +95,11 @@ def p_case_statement(p):
     """ 
     case_statement : CASE case_input ASSIGN statement
     """
-    p.parser.cc+=1
-    print(str(p.parser.cc) + ":\n"+str(p[4])+"\n")
-    
-        
-    p[0] = p[2]
+   
+    p[0] = {}
+    p[0]["statement"] = p[4]["python"]
+    p[0]["input"] = p[2]
+
 
 def p_case_input(p):
     """ 
@@ -146,6 +185,7 @@ def p_statement(p):
               | bool
     """
     if len(p) == 2:
+        p[1]["python"] = "return " + p[1]["python"]
         p[0] = p[1]
     else:
         t = verify.verify_UNARY_BOOL_OP(p[2]["type"])
@@ -155,7 +195,7 @@ def p_statement(p):
         
         p[0] = {}
         p[0]["type"] = t
-        p[0]["python"] = "if " + p[2]["python"]+":\n\t"+re.sub(r'\n','\n\t',p[4]["python"])+"\nelse:\n\t" + re.sub(r'\n','\n\t',p[6]["python"])
+        p[0]["python"] = "if " + re.sub("return ", "",p[2]["python"])+":\n\t"+re.sub(r'\n','\n\t',p[4]["python"])+"\nelse:\n\t" + re.sub(r'\n','\n\t',p[6]["python"])
     
 
 def p_list(p):
@@ -435,7 +475,7 @@ parser.cc = 0
 input_string = """
 deff sum
 {
-    case ([]) = 0;
+    case ([]) = +1 - 5;
     case (x:xs) = x + sum(xs); 
 }
 
@@ -447,8 +487,12 @@ deff soma_impares
 
 deff filtra_impares
 {
-    case ([]) = [];
-    case (x:xs) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
+    case ([],2,2) = [];
+    case ([],2,1) = [];
+    case ([],3,1) = [];
+    case (x:xs,2,5) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
+    case (x:xs,3,5) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
+    case (x:xs,3,7) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
 }
 
 deff soma_impares_2{
@@ -500,7 +544,6 @@ deff ord
     case([])=True;
     case(x:xs)=True;
     case(x:y:xs) = x <= y && ord(y:xs);
-    case(h:dh:t) = x <= y && ord(y:xs);
 }
 
 
@@ -508,11 +551,6 @@ deff concatena
 {
     case([],ys) = ys;
     case(x:xs,ys) = x : concatena(xs,ys);
-}
-
-deff soma_impares_2
-{
-    case() = sum . filtra_impares(x) : [1,2,3] ;
 }
 """
 
