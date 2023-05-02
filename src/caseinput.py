@@ -28,7 +28,7 @@ class CaseInput:
         return False
     
     def __hash__(self):
-        return 0
+        return str(self.inputCase)
     
     def __len__(self):
         return len(self.inputCase)

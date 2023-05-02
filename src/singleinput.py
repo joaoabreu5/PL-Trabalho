@@ -25,7 +25,7 @@ class SingleInput:
         return False
     
     def __hash__(self):
-        return 0
+        return str(self.inputDict)
     
     def __len__(self):
         return len(self.inputDict)

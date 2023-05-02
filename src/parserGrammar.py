@@ -6,16 +6,15 @@ from caseinput import CaseInput
 
 tokens = lexer.tokens
 
-start = 'program'
+start = 'fpy_program'
 
 
-
-def p_program(p):
+def p_fpy_program(p):
     """
-    program : function_declarations
+    fpy_program : FPYINIT function_declarations FPYCLOSE
     """
-    code = p[1]["python"]
-    functions = p[1]["functions"]
+    code = p[2]["python"]
+    functions = p[2]["functions"]
     
     if (len(set(functions)) < len(functions)):
         print("Erro função já definida")
@@ -41,7 +40,7 @@ def p_function_declaration(p):
     """ 
     function_declaration : DEFF IDENTIFIER LBRACE function_body RBRACE
     """
-    #print(f"{p[2]} : {str(p[4])}\n\n")
+    
     setLen = set()
     setInput = set()
     for l in p[4]:
@@ -472,7 +471,8 @@ def p_error(p):
 
 parser = yacc.yacc()
 parser.cc = 0
-input_string = """
+input_string = '''
+"""FPY
 deff sum
 {
     case ([]) = +1 - 5;
@@ -553,6 +553,8 @@ deff concatena
     case(x:xs,ys) = x : concatena(xs,ys);
 }
 """
+
+'''
 
 result = parser.parse(input_string)
 print("Done")

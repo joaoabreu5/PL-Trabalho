@@ -1,5 +1,6 @@
 import ply.lex as lex
 
+
 tokens = [
     'INTEGER',
     'FLOAT',
@@ -31,7 +32,9 @@ tokens = [
     'NOT',
     'PERIOD',
     'SEMICOLON',
-    'ASSIGN'
+    'ASSIGN',
+    "FPYINIT",
+    "FPYCLOSE"
 ]
 
 reserved = {
@@ -46,34 +49,126 @@ reserved = {
 
 tokens += list(set(reserved.values()))
 
-t_PERIOD = r'\.'
-t_COLON = r':'
-t_SEMICOLON = r';'
-t_CONCAT = r'\+\+'
-t_PLUS = r'\+'
-t_MINUS = r'-'
-t_MULT = r'\*'
-t_FLOORDIV = r'//'
-t_DIV = r'/'
-t_MOD = r'%'
-t_POWER = r'\^'
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
-t_LSQUARE = r'\['
-t_RSQUARE = r'\]'
-t_LBRACE = r'\{'
-t_RBRACE = r'\}'
-t_COMMA = r','
-t_LE = r'<='
-t_LT = r'<'
-t_GE = r'>='
-t_GT = r'>'
-t_EQ = r'=='
-t_NE = r'!='
-t_ASSIGN = r'='
-t_AND = r'&&'
-t_OR = r'\|\|'
-t_NOT = r'!'
+
+def t_FPYINIT (t):
+    r'"""FPY'
+    return t
+  
+  
+def t_FPYCLOSE (t):
+    r'"""'
+    return t
+  
+def t_PERIOD (t):
+    r'\.'
+    return t
+  
+def t_COLON (t):
+    r':'
+    return t
+  
+def t_SEMICOLON (t):
+    r';'
+    return t
+
+def t_CONCAT (t):
+    r'\+\+'
+    return t
+
+def t_PLUS (t):
+    r'\+'
+    return t
+
+def t_MINUS (t):
+    r'-'
+    return t
+
+def t_MULT (t):
+    r'\*'
+    return t
+
+def t_FLOORDIV (t):
+    r'//'
+    return t
+
+def t_DIV (t):
+    r'/'
+    return t
+
+def t_MOD (t):
+    r'%'
+    return t
+
+def t_POWER (t):
+    r'\^'
+    return t
+  
+def t_LPAREN (t):
+    r'\('
+    return t
+  
+def t_RPAREN (t):
+    r'\)'
+    return t
+  
+def t_LSQUARE (t):
+    r'\['
+    return t
+  
+def t_RSQUARE (t):
+    r'\]'
+    return t
+  
+def t_LBRACE (t):
+    r'\{'
+    return t
+
+def t_RBRACE (t):
+    r'\}'
+    return t
+  
+def t_COMMA (t):
+    r','
+    return t
+  
+def t_LE (t):
+    r'<='
+    return t
+
+def t_LT (t):
+    r'<'
+    return t
+
+def t_GE (t):
+    r'>='
+    return t
+
+def t_GT (t):
+    r'>'
+    return t
+  
+def t_EQ (t):
+    r'=='
+    return t
+  
+def t_NE (t):
+    r'!='
+    return t
+
+def t_ASSIGN (t):
+    r'='
+    return t
+def t_AND (t):
+    r'&&'
+    return t
+  
+def t_OR (t):
+    r'\|\|'
+    return t
+
+def t_NOT (t):
+    r'!'
+    return t
 
 def t_FLOAT(t):
     r'\d+\.\d+'
@@ -88,7 +183,6 @@ def t_IDENTIFIER(t):
     t.type = reserved.get(t.value, 'IDENTIFIER')
     return t
 
-t_ignore = ' \t'
 
 def t_newline(t):
     r'\n+'
@@ -97,6 +191,10 @@ def t_newline(t):
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
+    
+t_ignore = ' \t'
+
+
 
 # Construir o analisador léxico
 lexer = lex.lex()
