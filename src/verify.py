@@ -164,6 +164,8 @@ def str_tree(dict,level, length):
                     ret += "if len(arg" +str(level) +") >= " + str(len(i.inputDict["vars"])-1) +":\n\t" + re.sub('\n','\n\t',aux) + re.sub('\n','\n\t',str_tree(dict[i],level+1,length))
                 else:
                     ret += "if len(arg" +str(level) +") == 0" +":\n\t" + re.sub('\n','\n\t',str_tree(dict[i],level+1,length))
+                if j == lenD -1:
+                    ret += "\nelse:\n\traise ValueError\n"
             if j != lenD -1:
                 ret+="\n"
             j+=1
