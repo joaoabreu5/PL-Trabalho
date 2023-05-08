@@ -3,5 +3,3 @@
 __pycache__
 *.out
 parsetab.py
-oldSin/lexerv1.py
-oldSin/parserGrammarv1.py
