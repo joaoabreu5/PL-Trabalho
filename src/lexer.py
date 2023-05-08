@@ -194,7 +194,15 @@ def t_error(t):
     
 t_ignore = ' \t'
 
-
+def find_column(input, token=None, lexpos=None):
+    if token is not None:
+        line_start = input.rfind('\n', 0, token.lexpos) + 1
+        return token.lexpos - line_start + 1
+    elif lexpos is not None:
+        line_start = input.rfind('\n', 0, lexpos) + 1
+        return lexpos - line_start + 1
+    else:
+        raise ValueError("Either token or lexpos must be provided")
 
 # Construir o analisador léxico
 lexer = lex.lex()

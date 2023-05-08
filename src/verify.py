@@ -35,6 +35,12 @@ def verify_BIN_COMPARE_OP(t1, t2):
         r = 'boolean'
     return r
 
+def verify_LIST(t):
+    r = None
+    if (t.startswith('list_') or t == 'any'):
+        r = t
+    return r
+
 def verify_COLON(t1, t2):
     r = None
     t1_list_count = t1.count('list_')
@@ -103,9 +109,9 @@ def verify_EQUALTYPE(t1, t2):
     return r        
 
 
-def verify_ERROR(t, line, col):
+def verify_ERROR(t, line, col,expected, actual,expression):
     if t == None:
-            raise TypeError(f'Type error at line {line}, column {col}')
+            raise Exception(f"{line}:{col}: <type error> Couldn't match expected type '{expected}' with actual type '{actual}, in expression '{expression}'")
     
 
 def verify_group_by_level(lst):
