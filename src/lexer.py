@@ -189,8 +189,10 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
-    t.lexer.skip(1)
+    line = t.lexer.lineno
+    col = find_column(t.lexer.lexdata, t)
+    raise Exception(f"{line}:{col}: <lexer error> Illegal character '{t.value[0]}'")
+    
     
 t_ignore = ' \t'
 

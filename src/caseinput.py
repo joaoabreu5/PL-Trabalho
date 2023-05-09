@@ -16,19 +16,19 @@ class CaseInput:
         return True
 
     def __lt__(self, other):
-        i = 0
         
-        while i < len(self):
+        
+        for i in range (0,len(self)):
             i1 = SingleInput(self.inputCase[i])
             i2 = SingleInput(other.inputCase[i])
             if i1 < i2:
                 return True
-            i+=1
+            
             
         return False
     
     def __hash__(self):
-        return hash(str(self.inputCase))
+        return 0
     
     def __len__(self):
         return len(self.inputCase)

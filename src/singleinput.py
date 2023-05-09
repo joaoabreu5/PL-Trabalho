@@ -16,7 +16,7 @@ class SingleInput:
         return True
     
     def __lt__(self, other):
-        if self.inputDict["type"] == 'any':
+        if self.inputDict["type"] == 'any' and other.inputDict["type"] != 'any':
             return True
         if self.inputDict["type"] == 'list_ht' and other.inputDict["type"] == 'list_ht':
             if len(self.inputDict["vars"]) < len(other.inputDict["vars"]):
@@ -25,7 +25,7 @@ class SingleInput:
         return False
     
     def __hash__(self):
-        return hash(str(self.inputDict))
+        return 0
     
     def __len__(self):
         return len(self.inputDict)

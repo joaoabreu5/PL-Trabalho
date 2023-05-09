@@ -2,6 +2,7 @@ import ply.yacc as yacc
 import lexer
 import verify
 import re
+import sys
 from caseinput import CaseInput
 
 tokens = lexer.tokens
@@ -14,13 +15,12 @@ def p_fpy_program(p):
     fpy_program : FPYINIT function_declarations FPYCLOSE
     """
     code = p[2]["python"]
-    functions = p[2]["functions"]
     
-    if (len(set(functions)) < len(functions)):
-        print("Erro função já definida")
         
-    for func in functions:
-        code = re.sub(func,"f_"+func+"_",code)
+    for func in p.parser.functions:
+        pattern = r"\b" + func + r"\b"
+        replacement = "f_" + func + "_"
+        code = re.sub(pattern, replacement, code)
     p[0] = code
 
 def p_function_declarations(p):
@@ -28,39 +28,61 @@ def p_function_declarations(p):
     function_declarations : function_declaration
                           | function_declaration function_declarations
     """
+    func_name = p[1]["func_name"]
+    line = p[1]["lineno"]
+    col = lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"])
     if len(p) == 2:
         p[0] = {}
-        p[0]["functions"] = [p[1]["func_name"]]
-        p[0]["python"] = p[1]["python"]
+        if func_name in p.parser.functions:
+            print(f"{line}:{col}: Warning : Function '{func_name}' is already defined",file=sys.stderr)
+            p[0]["python"] = ""
+        else:
+            p.parser.functions += [func_name]
+            p[0]["python"] = p[1]["python"]
     else:
         p[0] = {}
-        p[0]["functions"] = [p[1]["func_name"]] + p[2]["functions"]
-        p[0]["python"] = p[1]["python"] + p[2]["python"]
+        if func_name in p.parser.functions:
+            print(f"{line}:{col}: <Warning> Function '{func_name}' is already defined",file=sys.stderr)
+            p[0]["python"] = p[2]["python"]
+        else:
+            p.parser.functions += [func_name]
+            p[0]["python"] = p[1]["python"] + p[2]["python"]
+        
 def p_function_declaration(p):
     """ 
     function_declaration : DEFF IDENTIFIER LBRACE function_body RBRACE
     """
-    
+    line = p.lineno(1)
+    col = lexer.find_column(p.lexer.lexdata,lexpos=p.lexpos(1))
     setLen = set()
     setInput = set()
+    toBeRemoved = []
     for l in p[4]:
+        lineL = l["lineno"]
+        colL = lexer.find_column(p.lexer.lexdata,lexpos=l["lexpos"])
         setLen.add(len(l["input"]))
-        setInput.add(CaseInput(l["input"]))
+        entry = CaseInput(l["input"])
+        if entry in setInput:
+             toBeRemoved.append(l)
+             print(f"{lineL}:{colL}: <Warning> Redundant input in pattern matching for function '{p[2]}'", file = sys.stderr)
+        else:
+            setInput.add(entry)
+
+    for l in toBeRemoved:
+        p[4].remove(l)
+               
     
     if len(setLen) > 1:
-        #erro inputs com tamanhos diferentes
-        print(f"Erro inputs com tamanhos diferentes na função {p[2]}")
-        pass
+        raise Exception(f"{line}:{col}: <Error> Equations for function '{p[2]}' have different number of arguments")
+       
     
-    if len(setInput) != len(p[4]):
-        #erro inputs iguais
-        print(f"Erro inputs iguais na função {p[2]}")
-        pass
+        
     
     lenArgs = setLen.pop()
     if lenArgs > 0:
         lista = map(lambda x: x.inputCase, sorted(list(setInput),reverse=True))
-        tree = verify.verify_group_by_level(list(lista))
+        listaL = list(lista)
+        tree = verify.verify_group_by_level(listaL)
         tree = verify.verify_fill(p[4],tree)
         pythonString = verify.str_tree(tree,0,lenArgs)
     else:
@@ -77,6 +99,8 @@ def p_function_declaration(p):
     p[0] = {}
     p[0]["func_name"] = p[2]
     p[0]["python"] = full_function
+    p[0]["lineno"] = p.lineno(1)
+    p[0]["lexpos"] = p.lexpos(1)
        
 
 
@@ -98,6 +122,8 @@ def p_case_statement(p):
     p[0] = {}
     p[0]["statement"] = p[4]["python"]
     p[0]["input"] = p[2]
+    p[0]["lineno"] = p.lineno(1)
+    p[0]["lexpos"] = p.lexpos(1)
 
 
 def p_case_input(p):
@@ -561,4 +587,5 @@ def p_error(p):
         raise Exception(f"{p.lineno}:{column_number}: <parse error> Unexpected end of input")
 
 parser = yacc.yacc()
+parser.functions = []
 
