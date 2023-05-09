@@ -3,7 +3,7 @@ import lexer
 import verify
 import re
 import sys
-from caseinput import CaseInput
+from caseInput import CaseInput
 
 tokens = lexer.tokens
 
@@ -15,13 +15,13 @@ def p_fpy_program(p):
     fpy_program : FPYINIT function_declarations FPYCLOSE
     """
     code = p[2]["python"]
-    
-        
+
     for func in p.parser.functions:
         pattern = r"\b" + func + r"\b"
         replacement = "f_" + func + "_"
         code = re.sub(pattern, replacement, code)
     p[0] = code
+
 
 def p_function_declarations(p):
     """ 
@@ -34,7 +34,7 @@ def p_function_declarations(p):
     if len(p) == 2:
         p[0] = {}
         if func_name in p.parser.functions:
-            print(f"{line}:{col}: Warning : Function '{func_name}' is already defined",file=sys.stderr)
+            print(f"{line}:{col}: Warning : Function '{func_name}' is already defined", file=sys.stderr)
             p[0]["python"] = ""
         else:
             p.parser.functions += [func_name]
@@ -42,66 +42,63 @@ def p_function_declarations(p):
     else:
         p[0] = {}
         if func_name in p.parser.functions:
-            print(f"{line}:{col}: <Warning> Function '{func_name}' is already defined",file=sys.stderr)
+            print(f"{line}:{col}: <Warning> Function '{func_name}' is already defined", file=sys.stderr)
             p[0]["python"] = p[2]["python"]
         else:
             p.parser.functions += [func_name]
             p[0]["python"] = p[1]["python"] + p[2]["python"]
-        
+
+
 def p_function_declaration(p):
     """ 
     function_declaration : DEFF IDENTIFIER LBRACE function_body RBRACE
     """
     line = p.lineno(1)
-    col = lexer.find_column(p.lexer.lexdata,lexpos=p.lexpos(1))
+    col = lexer.find_column(p.lexer.lexdata, lexpos=p.lexpos(1))
     setLen = set()
     setInput = set()
     toBeRemoved = []
     for l in p[4]:
         lineL = l["lineno"]
-        colL = lexer.find_column(p.lexer.lexdata,lexpos=l["lexpos"])
+        colL = lexer.find_column(p.lexer.lexdata, lexpos=l["lexpos"])
         setLen.add(len(l["input"]))
         entry = CaseInput(l["input"])
         if entry in setInput:
-             toBeRemoved.append(l)
-             print(f"{lineL}:{colL}: <Warning> Redundant input in pattern matching for function '{p[2]}'", file = sys.stderr)
+            toBeRemoved.append(l)
+            print(f"{lineL}:{colL}: <Warning> Redundant input in pattern matching for function '{p[2]}'",
+                  file=sys.stderr)
         else:
             setInput.add(entry)
 
     for l in toBeRemoved:
         p[4].remove(l)
-               
-    
+
     if len(setLen) > 1:
         raise Exception(f"{line}:{col}: <Error> Equations for function '{p[2]}' have different number of arguments")
-       
-    
-        
-    
+
     lenArgs = setLen.pop()
     if lenArgs > 0:
-        lista = map(lambda x: x.inputCase, sorted(list(setInput),reverse=True))
+        lista = map(lambda x: x.inputCase, sorted(list(setInput), reverse=True))
         listaL = list(lista)
         tree = verify.verify_group_by_level(listaL)
-        tree = verify.verify_fill(p[4],tree)
-        pythonString = verify.str_tree(tree,0,lenArgs)
+        tree = verify.verify_fill(p[4], tree)
+        pythonString = verify.str_tree(tree, 0, lenArgs)
     else:
         pythonString = p[4][0]["statement"]
-    
-    func_declare_string = "def "+p[2]+"("
+
+    func_declare_string = "def " + p[2] + "("
     for i in range(lenArgs):
-        if i != lenArgs-1:
-            func_declare_string += "arg"+str(i)+", "
+        if i != lenArgs - 1:
+            func_declare_string += "arg" + str(i) + ", "
         else:
-            func_declare_string += "arg"+str(i)
-    func_declare_string +="):"
-    full_function = func_declare_string + "\n\t"+re.sub("\n","\n\t",pythonString)+"\n\n"
+            func_declare_string += "arg" + str(i)
+    func_declare_string += "):"
+    full_function = func_declare_string + "\n\t" + re.sub("\n", "\n\t", pythonString) + "\n\n"
     p[0] = {}
     p[0]["func_name"] = p[2]
     p[0]["python"] = full_function
     p[0]["lineno"] = p.lineno(1)
     p[0]["lexpos"] = p.lexpos(1)
-       
 
 
 def p_function_body(p):
@@ -114,11 +111,12 @@ def p_function_body(p):
     else:
         p[0] = [p[1]] + p[3]
 
+
 def p_case_statement(p):
     """ 
     case_statement : CASE case_input ASSIGN statement
     """
-   
+
     p[0] = {}
     p[0]["statement"] = p[4]["python"]
     p[0]["input"] = p[2]
@@ -136,6 +134,7 @@ def p_case_input(p):
     else:
         p[0] = p[2]
 
+
 def p_case_arguments(p):
     """ 
     case_arguments : case_argument
@@ -145,7 +144,8 @@ def p_case_arguments(p):
         p[0] = [p[1]]
     else:
         p[0] = [p[1]] + p[3]
-    
+
+
 def p_case_argument(p):
     """ 
     case_argument : constant
@@ -154,7 +154,7 @@ def p_case_argument(p):
     """
     p[0] = p[1]
 
-    
+
 def p_constant(p):
     """ 
     constant : FLO
@@ -162,14 +162,15 @@ def p_constant(p):
              | BOOL
     """
     p[0] = p[1]
-    
+
+
 def p_case_list(p):
     """
     case_list : case_empty
               | case_headtail
     """
-    p[0]=p[1]
-    
+    p[0] = p[1]
+
 
 def p_case_empty(p):
     """ 
@@ -177,8 +178,7 @@ def p_case_empty(p):
     """
     p[0] = {}
     p[0]["type"] = "list_empty"
-   
- 
+
 
 def p_case_headtail(p):
     """ 
@@ -187,15 +187,16 @@ def p_case_headtail(p):
     p[0] = {}
     p[0]["type"] = "list_ht"
     p[0]["vars"] = [p[1]] + p[3]["vars"]
-  
-    
+
+
 def p_case_headtail2(p):
     """ 
     case_headtail2 : case_headtailID
                    | case_headtail
     """
     p[0] = p[1]
-    
+
+
 def p_case_headtailID(p):
     """
     case_headtailID : IDENTIFIER
@@ -203,7 +204,7 @@ def p_case_headtailID(p):
     p[0] = {}
     p[0]["vars"] = [p[1]]
 
-    
+
 def p_statement(p):
     """ 
     statement : IF bool THEN statement ELSE statement
@@ -214,17 +215,20 @@ def p_statement(p):
         p[0]["python"] = "return " + p[1]["python"]
     else:
         t = verify.verify_UNARY_BOOL_OP(p[2]["type"])
-        verify.verify_ERROR(t,p.lineno(1)+p.lineno(2),lexer.find_column(p.lexer.lexdata, lexpos=p[2]["lexpos"]), "boolean", p[2]["type"],p.lexer.lexdata[p[2]["lexpos"]:p[2]["lastpos"]])
-        t = verify.verify_EQUALTYPE(p[4]["type"],p[6]["type"])
-        verify.verify_ERROR(t,p.lineno(1)+p.lineno(6),lexer.find_column(p.lexer.lexdata,lexpos=p[6]["lexpos"]), p[4]["type"], p[6]["type"],p.lexer.lexdata[p[6]["lexpos"]:p[6]["lastpos"]])
-        
+        verify.verify_ERROR(t, p.lineno(1) + p.lineno(2), lexer.find_column(p.lexer.lexdata, lexpos=p[2]["lexpos"]),
+                            "boolean", p[2]["type"], p.lexer.lexdata[p[2]["lexpos"]:p[2]["lastpos"]])
+        t = verify.verify_EQUALTYPE(p[4]["type"], p[6]["type"])
+        verify.verify_ERROR(t, p.lineno(1) + p.lineno(6), lexer.find_column(p.lexer.lexdata, lexpos=p[6]["lexpos"]),
+                            p[4]["type"], p[6]["type"], p.lexer.lexdata[p[6]["lexpos"]:p[6]["lastpos"]])
+
         p[0] = {}
         p[0]["type"] = t
-        p[0]["python"] = "if " + re.sub("return ", "",p[2]["python"])+":\n\t"+re.sub(r'\n','\n\t',p[4]["python"])+"\nelse:\n\t" + re.sub(r'\n','\n\t',p[6]["python"])
+        p[0]["python"] = "if " + re.sub("return ", "", p[2]["python"]) + ":\n\t" + re.sub(r'\n', '\n\t', p[4][
+            "python"]) + "\nelse:\n\t" + re.sub(r'\n', '\n\t', p[6]["python"])
         p[0]["lexpos"] = p.lexpos(1)
         p[0]["lineno"] = p.lineno(1)
         p[0]["lastpos"] = p[6]["lastpos"]
-    
+
 
 def p_list(p):
     """
@@ -233,17 +237,17 @@ def p_list(p):
     """
     if len(p) == 3:
         p[0] = {}
-        p[0]["type"]  = "list_"
+        p[0]["type"] = "list_"
         p[0]["python"] = "[]"
-        p[0]["lastpos"] = p.lexpos(2)+1
+        p[0]["lastpos"] = p.lexpos(2) + 1
     else:
         p[0] = {}
-        p[0]["type"] = "list_" if p[2]["type"] == "any" else "list_"+p[2]["type"]
+        p[0]["type"] = "list_" if p[2]["type"] == "any" else "list_" + p[2]["type"]
         p[0]["python"] = "[" + p[2]["python"] + "]"
-        p[0]["lastpos"] = p.lexpos(3)+1
+        p[0]["lastpos"] = p.lexpos(3) + 1
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["lineno"] = p.lineno(1)
-    
+
 
 def p_list_elements(p):
     """ 
@@ -252,18 +256,19 @@ def p_list_elements(p):
     """
     # Armazena o tipo de cada elemento em uma lista
     if len(p) == 2:
-        p[0] =  p[1]
+        p[0] = p[1]
     else:
-        t = verify.verify_EQUALTYPE(p[1]["type"],p[3]["type"])
-        verify.verify_ERROR(t,p[1]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[1]["lexpos"]), p[3]["type"], p[1]["type"],p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
-        
+        t = verify.verify_EQUALTYPE(p[1]["type"], p[3]["type"])
+        verify.verify_ERROR(t, p[1]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"]), p[3]["type"],
+                            p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
+
         p[0] = {}
         p[0]["type"] = t
         p[0]["python"] = p[1]["python"] + ", " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
-        
-    
+
+
 def p_bool(p):
     """ 
     bool : bool OR join 
@@ -273,17 +278,19 @@ def p_bool(p):
         p[0] = p[1]
     else:
         t = verify.verify_UNARY_BOOL_OP(p[1]["type"])
-        verify.verify_ERROR(t,p[1]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[1]["lexpos"]), "boolean", p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
+        verify.verify_ERROR(t, p[1]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"]), "boolean",
+                            p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
         t = verify.verify_UNARY_BOOL_OP(p[3]["type"])
-        verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[3]["lexpos"]), "boolean",  p[3]["type"],p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
-        
+        verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]), "boolean",
+                            p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
+
         p[0] = {}
         p[0]["type"] = t
-        p[0]["python"] = p[1]["python"] + " or "+p[3]["python"]
+        p[0]["python"] = p[1]["python"] + " or " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
-    
+
 
 def p_join(p):
     """ 
@@ -294,17 +301,20 @@ def p_join(p):
         p[0] = p[1]
     else:
         t = verify.verify_UNARY_BOOL_OP(p[1]["type"])
-        verify.verify_ERROR(t,p[1]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[1]["lexpos"]), "boolean",  p[1]["type"],p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
+        verify.verify_ERROR(t, p[1]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"]), "boolean",
+                            p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
         t = verify.verify_UNARY_BOOL_OP(p[3]["type"])
-        verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[3]["lexpos"]), "boolean", p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
-        
+        verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]), "boolean",
+                            p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
+
         p[0] = {}
         p[0]["type"] = t
-        p[0]["python"] = p[1]["python"] + " and "+p[3]["python"]
+        p[0]["python"] = p[1]["python"] + " and " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
-    
+
+
 def p_equality(p):
     """ 
     equality : equality EQ rel 
@@ -314,16 +324,18 @@ def p_equality(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_BIN_COMPARE_OP(p[1]["type"],p[3]["type"])
-        verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos=p[3]["lexpos"]), p[1]["type"], p[3]["type"],p.lexer.lexdata[p[3]["lexpos"] : p[3]["lastpos"]])
-        
+        t = verify.verify_BIN_COMPARE_OP(p[1]["type"], p[3]["type"])
+        verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]), p[1]["type"],
+                            p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]: p[3]["lastpos"]])
+
         p[0] = {}
         p[0]["type"] = t
-        p[0]["python"] = p[1]["python"] + " " + p[2] + " " +p[3]["python"]
+        p[0]["python"] = p[1]["python"] + " " + p[2] + " " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
-    
+
+
 def p_rel(p):
     """
     rel : listop LT listop 
@@ -335,14 +347,16 @@ def p_rel(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        t = verify.verify_BIN_COMPARE_OP(p[1]["type"],p[3]["type"])
-        verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos=p[3]["lexpos"]), p[1]["type"], p[3]["type"],p.lexer.lexdata[p[3]["lexpos"] : p[3]["lastpos"]])
+        t = verify.verify_BIN_COMPARE_OP(p[1]["type"], p[3]["type"])
+        verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]), p[1]["type"],
+                            p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]: p[3]["lastpos"]])
         p[0] = {}
         p[0]["type"] = t
-        p[0]["python"] = p[1]["python"] + " " + p[2]+" "+p[3]["python"]
+        p[0]["python"] = p[1]["python"] + " " + p[2] + " " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+
 
 def p_listop(p):
     """
@@ -356,26 +370,30 @@ def p_listop(p):
         p[0] = {}
         if p[2] == ':':
             t = verify.verify_LIST(p[3]["type"])
-            verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos=p[3]["lexpos"]), "list", p[3]["type"],p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
-            t = verify.verify_COLON(p[1]["type"],p[3]["type"])
-            verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos=p[3]["lexpos"]), "list_"+p[1]["type"], p[3]["type"],p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
+            verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]), "list",
+                                p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
+            t = verify.verify_COLON(p[1]["type"], p[3]["type"])
+            verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]),
+                                "list_" + p[1]["type"], p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
             p[0]["python"] = "[" + p[1]["python"] + "]" + " + " + p[3]["python"]
         else:
             t = verify.verify_LIST(p[1]["type"])
-            verify.verify_ERROR(t,p[1]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos=p[1]["lexpos"]), "list",p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
+            verify.verify_ERROR(t, p[1]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"]), "list",
+                                p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
             t = verify.verify_LIST(p[3]["type"])
-            verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos=p[3]["lexpos"]), "list", p[3]["type"],p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
-            t = verify.verify_CONCAT(p[1]["type"],p[3]["type"])
-            verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos=p[3]["lexpos"]), p[1]["type"], p[3]["type"],p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
-            p[0]["python"] = p[1]["python"]+" + " + p[3]["python"]
-            
-       
-        
+            verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]), "list",
+                                p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
+            t = verify.verify_CONCAT(p[1]["type"], p[3]["type"])
+            verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]),
+                                p[1]["type"], p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
+            p[0]["python"] = p[1]["python"] + " + " + p[3]["python"]
+
         p[0]["type"] = t
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
-        
+
+
 def p_expr(p):
     """ 
     expr : expr PLUS term
@@ -386,16 +404,19 @@ def p_expr(p):
         p[0] = p[1]
     else:
         t = verify.verify_UNARY_NUM_OP(p[1]["type"])
-        verify.verify_ERROR(t,p[1]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[1]["lexpos"]), "num", p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
+        verify.verify_ERROR(t, p[1]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"]), "num",
+                            p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
         t = verify.verify_UNARY_NUM_OP(p[3]["type"])
-        verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[3]["lexpos"]), "num", p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
-        
+        verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]), "num",
+                            p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
+
         p[0] = {}
         p[0]["type"] = t
-        p[0]["python"] = p[1]["python"] + " " +p[2]+" "+p[3]["python"]
+        p[0]["python"] = p[1]["python"] + " " + p[2] + " " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+
 
 def p_term(p):
     """ 
@@ -409,18 +430,20 @@ def p_term(p):
         p[0] = p[1]
     else:
         t = verify.verify_UNARY_NUM_OP(p[1]["type"])
-        verify.verify_ERROR(t,p[1]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[1]["lexpos"]), "num", p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
+        verify.verify_ERROR(t, p[1]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"]), "num",
+                            p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
         t = verify.verify_UNARY_NUM_OP(p[3]["type"])
-        verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[3]["lexpos"]), "num", p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
-        
+        verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]), "num",
+                            p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
+
         p[0] = {}
-        p[0]["type"]= t
-        p[0]["python"] = p[1]["python"] + " " +p[2]+ " " + p[3]["python"]
+        p[0]["type"] = t
+        p[0]["python"] = p[1]["python"] + " " + p[2] + " " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
-        
-    
+
+
 def p_exponential(p):
     """ 
     exponential : exponential POWER unary
@@ -430,17 +453,20 @@ def p_exponential(p):
         p[0] = p[1]
     else:
         t = verify.verify_UNARY_NUM_OP(p[1]["type"])
-        verify.verify_ERROR(t,p[1]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[1]["lexpos"]), "num", p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
+        verify.verify_ERROR(t, p[1]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"]), "num",
+                            p[1]["type"], p.lexer.lexdata[p[1]["lexpos"]:p[1]["lastpos"]])
         t = verify.verify_UNARY_NUM_OP(p[3]["type"])
-        verify.verify_ERROR(t,p[3]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[3]["lexpos"]), "num",  p[3]["type"],p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
-        
+        verify.verify_ERROR(t, p[3]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[3]["lexpos"]), "num",
+                            p[3]["type"], p.lexer.lexdata[p[3]["lexpos"]:p[3]["lastpos"]])
+
         p[0] = {}
         p[0]["type"] = t
-        p[0]["python"] = p[1]["python"] + " " +p[2]+" "+p[3]["python"]
+        p[0]["python"] = p[1]["python"] + " " + p[2] + " " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
-    
+
+
 def p_unary(p):
     """ 
     unary : NOT unary 
@@ -454,16 +480,19 @@ def p_unary(p):
         if p[1] == '!':
             t = verify.verify_UNARY_BOOL_OP(p[2]["type"])
             p[1] = 'not'
-            verify.verify_ERROR(t,p[2]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[2]["lexpos"]), "boolean",  p[2]["type"],p.lexer.lexdata[p.lexpos(1):p[2]["lastpos"]])
+            verify.verify_ERROR(t, p[2]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[2]["lexpos"]), "boolean",
+                                p[2]["type"], p.lexer.lexdata[p.lexpos(1):p[2]["lastpos"]])
         else:
             t = verify.verify_UNARY_NUM_OP(p[2]["type"])
-            verify.verify_ERROR(t,p[2]["lineno"],lexer.find_column(p.lexer.lexdata,lexpos = p[2]["lexpos"]), "num",  p[2]["type"],p.lexer.lexdata[p.lexpos(1):p[2]["lastpos"]])
+            verify.verify_ERROR(t, p[2]["lineno"], lexer.find_column(p.lexer.lexdata, lexpos=p[2]["lexpos"]), "num",
+                                p[2]["type"], p.lexer.lexdata[p.lexpos(1):p[2]["lastpos"]])
         p[0] = {}
         p[0]["type"] = t
-        p[0]["python"] = p[1] + " " +p[2]["python"]
+        p[0]["python"] = p[1] + " " + p[2]["python"]
         p[0]["lexpos"] = p.lexpos(1)
         p[0]["lineno"] = p.lineno(1)
         p[0]["lastpos"] = p[2]["lastpos"]
+
 
 def p_factor(p):
     """
@@ -477,12 +506,13 @@ def p_factor(p):
     """
     if len(p) > 2:
         p[0] = p[2]
-        p[0]["python"] = "(" + p[2]["python"]+")"
+        p[0]["python"] = "(" + p[2]["python"] + ")"
         p[0]["lexpos"] = p.lexpos(1)
         p[0]["lineno"] = p.lineno(1)
         p[0]["lastpos"] = p.lexpos(3)
     else:
         p[0] = p[1]
+
 
 def p_INT(p):
     """ 
@@ -506,9 +536,8 @@ def p_FLO(p):
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["lineno"] = p.lineno(1)
     p[0]["lastpos"] = p.lexpos(1) + len(p[1])
-    
-    
-    
+
+
 def p_BOOL(p):
     """ 
     BOOL : BOOLEAN
@@ -519,9 +548,8 @@ def p_BOOL(p):
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["lineno"] = p.lineno(1)
     p[0]["lastpos"] = p.lexpos(1) + len(p[1])
-    
-    
-    
+
+
 def p_ID(p):
     """ 
     ID : IDENTIFIER
@@ -533,7 +561,7 @@ def p_ID(p):
     p[0]["lineno"] = p.lineno(1)
     p[0]["lastpos"] = p.lexpos(1) + len(p[1])
 
-    
+
 def p_function_composition(p):
     """ 
     function_composition : IDENTIFIER
@@ -543,10 +571,11 @@ def p_function_composition(p):
     if len(p) == 2:
         p[0]["python"] = p[1]
     else:
-        p[0]["python"] = p[1] +"("+p[3]["python"]+")"
+        p[0]["python"] = p[1] + "(" + p[3]["python"] + ")"
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["lineno"] = p.lineno(1)
-    
+
+
 def p_function_call(p):
     """ 
     function_call : function_composition LPAREN function_arguments RPAREN
@@ -555,16 +584,15 @@ def p_function_call(p):
     p[0] = {}
     p[0]["type"] = "any"
     if len(p) == 4:
-        p[0]["python"] = p[1]["python"]+"()"
-        p[0]["lastpos"] = p.lexpos(3)+1
+        p[0]["python"] = p[1]["python"] + "()"
+        p[0]["lastpos"] = p.lexpos(3) + 1
     else:
-        p[0]["python"] = p[1]["python"]+"("+ p[3]["python"] +")" if p[1]["python"][-1] != ")" else p[1]["python"][:-1] + "("+ p[3]["python"] +"))"
-        p[0]["lastpos"] = p.lexpos(4)+1
+        p[0]["python"] = p[1]["python"] + "(" + p[3]["python"] + ")" if p[1]["python"][-1] != ")" else p[1]["python"][:-1] + "(" + p[3]["python"] + "))"
+        p[0]["lastpos"] = p.lexpos(4) + 1
     p[0]["lexpos"] = p[1]["lexpos"]
     p[0]["lineno"] = p[1]["lineno"]
-    
-    
-    
+
+
 def p_function_arguments(p):
     """ 
     function_arguments : bool
@@ -574,10 +602,10 @@ def p_function_arguments(p):
         p[0] = p[1]
     else:
         p[0] = {}
-        p[0]["python"] = p[1]["python"] +", " + p[3]["python"]
+        p[0]["python"] = p[1]["python"] + ", " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
-        
+
 
 def p_error(p):
     column_number = lexer.find_column(p.lexer.lexdata, p)
@@ -586,6 +614,6 @@ def p_error(p):
     else:
         raise Exception(f"{p.lineno}:{column_number}: <parse error> Unexpected end of input")
 
+
 parser = yacc.yacc()
 parser.functions = []
-

@@ -1,6 +1,5 @@
 import ply.lex as lex
 
-
 tokens = [
     'INTEGER',
     'FLOAT',
@@ -40,143 +39,175 @@ tokens = [
 reserved = {
     'True': 'BOOLEAN',
     'False': 'BOOLEAN',
-    'if' : 'IF',
+    'if': 'IF',
     'then': 'THEN',
     'else': 'ELSE',
-    'deff' : 'DEFF',
+    'deff': 'DEFF',
     'case': 'CASE'
 }
 
 tokens += list(set(reserved.values()))
 
 
-def t_FPYINIT (t):
+def t_FPYINIT(t):
     r'"""FPY'
     return t
-  
-  
-def t_FPYCLOSE (t):
+
+
+def t_FPYCLOSE(t):
     r'"""'
     return t
-  
-def t_PERIOD (t):
+
+
+def t_PERIOD(t):
     r'\.'
     return t
-  
-def t_COLON (t):
+
+
+def t_COLON(t):
     r':'
     return t
-  
-def t_SEMICOLON (t):
+
+
+def t_SEMICOLON(t):
     r';'
     return t
 
-def t_CONCAT (t):
+
+def t_CONCAT(t):
     r'\+\+'
     return t
 
-def t_PLUS (t):
+
+def t_PLUS(t):
     r'\+'
     return t
 
-def t_MINUS (t):
+
+def t_MINUS(t):
     r'-'
     return t
 
-def t_MULT (t):
+
+def t_MULT(t):
     r'\*'
     return t
 
-def t_FLOORDIV (t):
+
+def t_FLOORDIV(t):
     r'//'
     return t
 
-def t_DIV (t):
+
+def t_DIV(t):
     r'/'
     return t
 
-def t_MOD (t):
+
+def t_MOD(t):
     r'%'
     return t
 
-def t_POWER (t):
+
+def t_POWER(t):
     r'\^'
     return t
-  
-def t_LPAREN (t):
+
+
+def t_LPAREN(t):
     r'\('
     return t
-  
-def t_RPAREN (t):
+
+
+def t_RPAREN(t):
     r'\)'
     return t
-  
-def t_LSQUARE (t):
+
+
+def t_LSQUARE(t):
     r'\['
     return t
-  
-def t_RSQUARE (t):
+
+
+def t_RSQUARE(t):
     r'\]'
     return t
-  
-def t_LBRACE (t):
+
+
+def t_LBRACE(t):
     r'\{'
     return t
 
-def t_RBRACE (t):
+
+def t_RBRACE(t):
     r'\}'
     return t
-  
-def t_COMMA (t):
+
+
+def t_COMMA(t):
     r','
     return t
-  
-def t_LE (t):
+
+
+def t_LE(t):
     r'<='
     return t
 
-def t_LT (t):
+
+def t_LT(t):
     r'<'
     return t
 
-def t_GE (t):
+
+def t_GE(t):
     r'>='
     return t
 
-def t_GT (t):
+
+def t_GT(t):
     r'>'
     return t
-  
-def t_EQ (t):
+
+
+def t_EQ(t):
     r'=='
     return t
-  
-def t_NE (t):
+
+
+def t_NE(t):
     r'!='
     return t
 
-def t_ASSIGN (t):
+
+def t_ASSIGN(t):
     r'='
     return t
-def t_AND (t):
+
+
+def t_AND(t):
     r'&&'
     return t
-  
-def t_OR (t):
+
+
+def t_OR(t):
     r'\|\|'
     return t
 
-def t_NOT (t):
+
+def t_NOT(t):
     r'!'
     return t
+
 
 def t_FLOAT(t):
     r'\d+\.\d+'
     return t
 
+
 def t_INTEGER(t):
     r'\d+'
     return t
+
 
 def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -188,13 +219,15 @@ def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
+
 def t_error(t):
     line = t.lexer.lineno
     col = find_column(t.lexer.lexdata, t)
     raise Exception(f"{line}:{col}: <lexer error> Illegal character '{t.value[0]}'")
-    
-    
+
+
 t_ignore = ' \t'
+
 
 def find_column(input, token=None, lexpos=None):
     if token is not None:
@@ -205,6 +238,7 @@ def find_column(input, token=None, lexpos=None):
         return lexpos - line_start + 1
     else:
         raise ValueError("Either token or lexpos must be provided")
+
 
 # Construir o analisador léxico
 lexer = lex.lex()
