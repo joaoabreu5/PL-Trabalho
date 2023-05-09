@@ -28,18 +28,7 @@ class SingleInput:
         return False
 
     def __hash__(self):
-        inputDict_copy = copy.copy(self.inputDict)
-
-        if 'lineno' in inputDict_copy:
-            inputDict_copy.pop('lineno')
-
-        if 'lexpos' in inputDict_copy:
-            inputDict_copy.pop('lexpos')
-
-        if 'lastpos' in inputDict_copy:
-            inputDict_copy.pop('lastpos')
-
-        return hash(str(inputDict_copy))
+        return 0
 
     def __len__(self):
         return len(self.inputDict)

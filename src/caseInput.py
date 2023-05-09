@@ -27,19 +27,7 @@ class CaseInput:
         return False
 
     def __hash__(self):
-        inputCase_copy = copy.deepcopy(self.inputCase)
-
-        for d in inputCase_copy:
-            if 'lineno' in d:
-                d.pop('lineno')
-
-            if 'lexpos' in d:
-                d.pop('lexpos')
-
-            if 'lastpos' in d:
-                d.pop('lastpos')
-
-        return hash(str(inputCase_copy))
+        return 0
 
     def __len__(self):
         return len(self.inputCase)
