@@ -2,8 +2,10 @@ import copy
 
 
 class SingleInput:
-    def __init__(self, inputDict):
+    def __init__(self, inputDict, extraVar=None, extraList=None):
         self.inputDict = inputDict
+        self.extraVar = extraVar
+        self.extraList = extraList
 
     def __eq__(self, other):
         if self.inputDict["type"] != other.inputDict["type"]:
@@ -15,6 +17,7 @@ class SingleInput:
             elif self.inputDict["type"] == 'list_ht':
                 if len(self.inputDict["vars"]) != len(other.inputDict["vars"]):
                     return False
+
 
         return True
 

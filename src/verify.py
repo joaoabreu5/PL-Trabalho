@@ -122,13 +122,31 @@ def verify_ERROR(t, line, col, expected, actual, expression):
 
 def verify_group_by_level(lst):
     tree = {}
+    extraVar = None
+    extraList = None
     for path in lst:
+        level = 0
         node = tree
         for e in path:
-            element = SingleInput(e)
+            element = SingleInput(e,extraVar,extraList)
             if element not in node:
                 node[element] = {}
+                extraVar = None
+                extraList = None
+            else:
+                if e["type"] == "any":
+                    if extraVar is None:
+                        extraVar = [(e["python"],level)]
+                    else:
+                        extraVar += [(e["python"],level)]
+                elif e["type"] == "list_ht":
+                    if extraList is None:
+                        extraList = [(e["vars"],level)]
+                    else:
+                        extraList += [(e["vars"],level)]
+
             node = node[element]
+            level+=1
 
     return tree
 
@@ -137,13 +155,13 @@ def verify_fill(list, tree):
     for element in list:
         path = element["input"]
         node = tree
-        laste = node
+        last = node
         aux = node
         for e in path:
-            laste = SingleInput(e)
+            last = SingleInput(e)
             aux = node
-            node = node[laste]
-        aux[laste] = element["statement"]
+            node = node[last]
+        aux[last] = element["statement"]
 
     return tree
 
@@ -156,13 +174,33 @@ def str_tree(dict, level, length):
     else:
         ret = ""
         for i in dict:
+            extraVar = ""
+            extraList = ""
+            if i.extraVar != None:
+                for e in i.extraVar:
+                    extraVar += e[0]+ " = arg" + str(e[1])+"\n"
+            if i.extraList != None:
+                for e in i.extraList:
+                    index = 1
+                    extraList += e[0][0] + " = arg" + str(e[1]) + "[0]\n"
+                    while index < len(e[0]):
+                        if index == len(e[0]) - 1:
+                            extraList += e[0][index] + " = arg" + str(e[1]) + "[" + str(index) + ":]\n"
+                        else:
+                            extraList +=e[0][index] + " = arg" + str(e[1]) + "[" + str(index) + "]\n"
+                        index += 1
+
             if i.inputDict["type"] == 'any':
+                ret+= extraVar
+                ret+= re.sub(
+                    '\n', '\n\t', extraList)
                 ret += i.inputDict["python"] + " = arg" + str(level) + "\n" + str_tree(dict[i], level + 1, length)
             else:
                 if j > 0:
                     ret += "el"
                 if i.inputDict["type"] in ['num', 'boolean']:
-                    ret += "if arg" + str(level) + " == " + i.inputDict["python"] + ":\n\t" + re.sub('\n', '\n\t',
+                    ret += "if arg" + str(level) + " == " + i.inputDict["python"] + ":\n\t" + re.sub(
+                        '\n', '\n\t', extraList) + re.sub('\n', '\n\t',extraVar+
                                                                                                      str_tree(dict[i],
                                                                                                               level + 1,
                                                                                                               length))
@@ -178,10 +216,10 @@ def str_tree(dict, level, length):
                         index += 1
 
                     ret += "if len(arg" + str(level) + ") >= " + str(len(i.inputDict["vars"]) - 1) + ":\n\t" + re.sub(
-                        '\n', '\n\t', aux) + re.sub('\n', '\n\t', str_tree(dict[i], level + 1, length))
+                        '\n', '\n\t', extraList) + re.sub('\n', '\n\t', aux) + re.sub('\n', '\n\t', extraVar + str_tree(dict[i], level + 1, length))
                 else:
-                    ret += "if len(arg" + str(level) + ") == 0" + ":\n\t" + re.sub('\n', '\n\t',
-                                                                                   str_tree(dict[i], level + 1, length))
+                    ret += "if len(arg" + str(level) + ") == 0" + ":\n\t" + re.sub(
+                        '\n', '\n\t', extraList) + re.sub('\n', '\n\t', extraVar + str_tree(dict[i], level + 1, length))
                 if j == lenD - 1:
                     ret += "\nelse:\n\traise ValueError\n"
             if j != lenD - 1:

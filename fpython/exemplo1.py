@@ -1,4 +1,10 @@
 """FPY
+
+deff ex{
+    case (x:xs,c,a,True) = a * 1;
+    case (y:ys,d,b,False) = b * 2;
+}
+
 deff sum
 {
     case ([]) = 0;
