@@ -4,9 +4,7 @@ import sys
 
 
 def repl_func(match):
-    matched_str = match.group(0)
-    ret_str = parser.parse(matched_str)
-    
+    matched_str = match.group(0)    
     try:
         ret_str = parser.parse(matched_str)
     except Exception as e:

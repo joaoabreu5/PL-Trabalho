@@ -27,7 +27,29 @@ class CaseInput:
         return False
 
     def __hash__(self):
-        return 0
+        inputCase_copy = []
+
+        for d in self.inputCase:
+            d_copy = copy.deepcopy(d)
+            
+            if 'lineno' in d_copy:
+                d_copy.pop('lineno')
+
+            if 'lexpos' in d_copy:
+                d_copy.pop('lexpos')
+
+            if 'lastpos' in d_copy:
+                d_copy.pop('lastpos')
+
+            if 'type' in d_copy and d_copy['type'] == 'any' and 'python' in d_copy:
+                d_copy.pop('python')
+                
+            if 'type' in d_copy and d_copy['type'] == 'list_ht' and 'vars' in d_copy:
+                d_copy['vars'] = len(d_copy['vars'])
+
+            inputCase_copy.append(tuple(sorted(d_copy.items())))
+            
+        return hash(tuple(inputCase_copy))
 
     def __len__(self):
         return len(self.inputCase)

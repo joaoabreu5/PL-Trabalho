@@ -1,18 +1,18 @@
 def f_ex_(arg0, arg1, arg2, arg3):
 	if len(arg0) >= 1:
-		x = arg0[0]
-		xs = arg0[1:]
-		c = arg1
-		a = arg2
-		if arg3 == True:
-			return a * 1
-			
-		elif arg3 == False:
-			y = arg0[0]
-			ys = arg0[1:]
-			d = arg1
-			b = arg2
+		y = arg0[0]
+		ys = arg0[1:]
+		d = arg1
+		b = arg2
+		if arg3 == False:
 			return b * 2
+			
+		elif arg3 == True:
+			x = arg0[0]
+			xs = arg0[1:]
+			c = arg1
+			a = arg2
+			return a * 1
 			
 		else:
 			raise ValueError
@@ -72,7 +72,19 @@ def f_filtra_impares_(arg0, arg1, arg2):
 	elif len(arg0) >= 1:
 		x = arg0[0]
 		xs = arg0[1:]
-		if arg1 == 3:
+		if arg1 == 2:
+			if arg2 == 5:
+				if not (x % 2 == 0):
+					return f_filtra_impares_(xs)
+				else:
+					return x + f_filtra_impares_(xs)
+				
+			else:
+				raise ValueError
+			
+		elif arg1 == 3:
+			x = arg0[0]
+			xs = arg0[1:]
 			if arg2 == 5:
 				if not (x % 2 == 0):
 					return f_filtra_impares_(xs)
@@ -82,18 +94,6 @@ def f_filtra_impares_(arg0, arg1, arg2):
 			elif arg2 == 7:
 				x = arg0[0]
 				xs = arg0[1:]
-				if not (x % 2 == 0):
-					return f_filtra_impares_(xs)
-				else:
-					return x + f_filtra_impares_(xs)
-				
-			else:
-				raise ValueError
-			
-		elif arg1 == 2:
-			x = arg0[0]
-			xs = arg0[1:]
-			if arg2 == 5:
 				if not (x % 2 == 0):
 					return f_filtra_impares_(xs)
 				else:
@@ -177,14 +177,14 @@ def f_maximo_(arg0, arg1):
 	
 
 def f_ord_(arg0):
-	if len(arg0) == 0:
-		return True
-		
-	elif len(arg0) >= 2:
+	if len(arg0) >= 2:
 		x = arg0[0]
 		y = arg0[1]
 		xs = arg0[2:]
 		return x <= y and f_ord_([y] + xs)
+		
+	elif len(arg0) == 0:
+		return True
 		
 	elif len(arg0) >= 1:
 		x = arg0[0]
