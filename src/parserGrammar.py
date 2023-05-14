@@ -14,7 +14,10 @@ def p_fpy_program(p):
     """
     fpy_program : FPYINIT function_declarations FPYCLOSE
     """
-    code = p[2]["python"]
+    code = ""
+
+    for func in p.parser.functions:
+        code += p.parser.functions[func]["python"]
 
     for func in p.parser.functions:
         pattern = r"\b" + func + r"\b"
@@ -31,22 +34,25 @@ def p_function_declarations(p):
     func_name = p[1]["func_name"]
     line = p[1]["lineno"]
     col = lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"])
-    if len(p) == 2:
-        p[0] = {}
-        if func_name in p.parser.functions:
-            print(f"{line}:{col}: Warning : Function '{func_name}' is already defined", file=sys.stderr)
-            p[0]["python"] = ""
+    if func_name in p.parser.functions:
+        if line<p.parser.functions[func_name]["lineno"]:
+            oldline = p.parser.functions[func_name]["lineno"]
+            oldcol = p.parser.functions[func_name]["col"]
+            p.parser.warnings.append((line,col,f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
+            p.parser.functions[func_name] = {"lineno":line,"col":col,"python":p[1]["python"]}
+        elif line == p.parser.functions[func_name]["lineno"]:
+            if col < p.parser.functions[func_name]["col"]:
+                oldline = p.parser.functions[func_name]["lineno"]
+                oldcol = p.parser.functions[func_name]["col"]
+                p.parser.warnings.append((line,col,f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
+                p.parser.functions[func_name] = {"lineno":line,"col":col,"python":p[1]["python"]}
+            else:
+                p.parser.warnings.append((line,col,f"{line}:{col}: <Warning> Function '{func_name}' is already defined"))
         else:
-            p.parser.functions += [func_name]
-            p[0]["python"] = p[1]["python"]
+            p.parser.warnings.append((line,col,f"{line}:{col}: <Warning> Function '{func_name}' is already defined"))
     else:
-        p[0] = {}
-        if func_name in p.parser.functions:
-            print(f"{line}:{col}: <Warning> Function '{func_name}' is already defined", file=sys.stderr)
-            p[0]["python"] = p[2]["python"]
-        else:
-            p.parser.functions += [func_name]
-            p[0]["python"] = p[1]["python"] + p[2]["python"]
+        p.parser.functions[func_name] = {"lineno":line,"col":col,"python":p[1]["python"]}
+
 
 
 def p_function_declaration(p):
@@ -65,8 +71,7 @@ def p_function_declaration(p):
         entry = CaseInput(l["input"])
         if entry in setInput:
             toBeRemoved.append(l)
-            print(f"{lineL}:{colL}: <Warning> Redundant input in pattern matching for function '{p[2]}'",
-                  file=sys.stderr)
+            p.parser.warnings.append((lineL,colL,f"{lineL}:{colL}: <Warning> Redundant input in pattern matching for function '{p[2]}'")),
         else:
             setInput.add(entry)
 
@@ -78,11 +83,12 @@ def p_function_declaration(p):
 
     lenArgs = setLen.pop()
     if lenArgs > 0:
-        lista = map(lambda x: x.inputCase, sorted(list(setInput), reverse=True))
+        sortedIn = sorted(list(setInput),reverse=True)
+        lista = map(lambda x: x.inputCase, sortedIn)
         listaL = list(lista)
         tree = verify.verify_group_by_level(listaL)
         tree = verify.verify_fill(p[4], tree)
-        pythonString = verify.str_tree(tree, 0, lenArgs)
+        pythonString = verify.str_tree(tree, 0, lenArgs,"")
     else:
         pythonString = p[4][0]["statement"]
 
@@ -616,4 +622,5 @@ def p_error(p):
 
 
 parser = yacc.yacc()
-parser.functions = []
+parser.functions = {}
+parser.warnings = []

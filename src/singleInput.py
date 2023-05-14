@@ -23,6 +23,8 @@ class SingleInput:
     def __lt__(self, other):
         if self.inputDict["type"] == 'any' and other.inputDict["type"] != 'any':
             return True
+        if self.inputDict["type"] == "list_empty" and other.inputDict["type"] == "list_ht": 
+            return True
         if self.inputDict["type"] == 'list_ht' and other.inputDict["type"] == 'list_ht':
             if len(self.inputDict["vars"]) < len(other.inputDict["vars"]):
                 return True
@@ -30,25 +32,8 @@ class SingleInput:
         return False
 
     def __hash__(self):
-        inputDict_copy = copy.deepcopy(self.inputDict)
-
-        if 'lineno' in inputDict_copy:
-            inputDict_copy.pop('lineno')
-
-        if 'lexpos' in inputDict_copy:
-            inputDict_copy.pop('lexpos')
-
-        if 'lastpos' in inputDict_copy:
-            inputDict_copy.pop('lastpos')
-
-        if 'type' in inputDict_copy and inputDict_copy['type'] == 'any' and 'python' in inputDict_copy:
-            inputDict_copy.pop('python')
-            
-        if 'type' in inputDict_copy and inputDict_copy['type'] == 'list_ht' and 'vars' in inputDict_copy:
-                inputDict_copy['vars'] = len(inputDict_copy['vars'])
-
-        return hash(tuple(sorted(inputDict_copy.items())))
-
+        return 0
+    
     def __len__(self):
         return len(self.inputDict)
 

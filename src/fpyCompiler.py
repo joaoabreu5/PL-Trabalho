@@ -4,13 +4,15 @@ import sys
 
 
 def repl_func(match):
-    matched_str = match.group(0)    
+    matched_str = match.group(0) 
+    ret_str = parser.parse(matched_str)
+    """ 
     try:
         ret_str = parser.parse(matched_str)
     except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)
-  
+    """
     return ret_str
 
 
@@ -29,6 +31,9 @@ if len(sys.argv) > 1:
         texto = erFPY.sub(repl_func, data)
         outputFile = open(filename[:-3] + "FPY.py", 'w')
         outputFile.write(texto)
+        warnings = sorted_list = sorted(parser.warnings, key=lambda x: (x[0], x[1]))
+        for w in warnings:
+            print(w[2], file=sys.stderr)
     else:
         print(f"File '{filename}' is not valid", file=sys.stderr)
 else:

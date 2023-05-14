@@ -166,7 +166,7 @@ def verify_fill(list, tree):
     return tree
 
 
-def str_tree(dict, level, length):
+def str_tree(dict, level, length, varS):
     lenD = len(dict)
     j = 0
     if level == length:
@@ -179,6 +179,7 @@ def str_tree(dict, level, length):
             if i.extraVar != None:
                 for e in i.extraVar:
                     extraVar += e[0]+ " = arg" + str(e[1])+"\n"
+                varS = ""
             if i.extraList != None:
                 for e in i.extraList:
                     index = 1
@@ -189,21 +190,31 @@ def str_tree(dict, level, length):
                         else:
                             extraList +=e[0][index] + " = arg" + str(e[1]) + "[" + str(index) + "]\n"
                         index += 1
+                varS = ""
 
             if i.inputDict["type"] == 'any':
                 ret+= extraVar
-                ret+= re.sub(
-                    '\n', '\n\t', extraList)
-                ret += i.inputDict["python"] + " = arg" + str(level) + "\n" + str_tree(dict[i], level + 1, length)
+                ret+= extraList
+                if level == length - 1:
+                    ret += varS+i.inputDict["python"] + " = arg" + str(level) + "\n" + str_tree(dict[i], level + 1, length, "")
+                else:
+                    ret += str_tree(dict[i], level + 1, length,varS+i.inputDict["python"] + " = arg" + str(level)+ "\n")
             else:
                 if j > 0:
                     ret += "el"
                 if i.inputDict["type"] in ['num', 'boolean']:
-                    ret += "if arg" + str(level) + " == " + i.inputDict["python"] + ":\n\t" + re.sub(
-                        '\n', '\n\t', extraList) + re.sub('\n', '\n\t',extraVar+
-                                                                                                     str_tree(dict[i],
-                                                                                                              level + 1,
-                                                                                                              length))
+                    if level == length - 1:
+                        ret += "if arg" + str(level) + " == " + i.inputDict["python"] + ":\n\t" + re.sub(
+                            '\n', '\n\t', varS+extraList+ extraVar+
+                                                                                                        str_tree(dict[i],
+                                                                                                                level + 1,
+                                                                                                                length,""))
+                    else:
+                         ret += "if arg" + str(level) + " == " + i.inputDict["python"] + ":\n\t" + re.sub(
+                            '\n', '\n\t', extraList + extraVar  +
+                                                                                                        str_tree(dict[i],
+                                                                                                                level + 1,
+                                                                                                                length,varS))
                 elif i.inputDict["type"] == "list_ht":
                     aux = ""
                     index = 1
@@ -214,12 +225,21 @@ def str_tree(dict, level, length):
                         else:
                             aux += i.inputDict["vars"][index] + " = arg" + str(level) + "[" + str(index) + "]\n"
                         index += 1
-
-                    ret += "if len(arg" + str(level) + ") >= " + str(len(i.inputDict["vars"]) - 1) + ":\n\t" + re.sub(
-                        '\n', '\n\t', extraList) + re.sub('\n', '\n\t', aux) + re.sub('\n', '\n\t', extraVar + str_tree(dict[i], level + 1, length))
+                    
+                    if level == length - 1:
+                        ret += "if len(arg" + str(level) + ") >= " + str(len(i.inputDict["vars"]) - 1) + ":\n\t" + re.sub(
+                            '\n', '\n\t', varS+ extraList + extraVar +aux+ str_tree(dict[i], level + 1, length,""))
+                    else:
+                        ret += "if len(arg" + str(level) + ") >= " + str(len(i.inputDict["vars"]) - 1) + ":\n\t" + re.sub(
+                            '\n', '\n\t', extraList + extraVar + str_tree(dict[i], level + 1, length,varS+aux))
+                        
                 else:
-                    ret += "if len(arg" + str(level) + ") == 0" + ":\n\t" + re.sub(
-                        '\n', '\n\t', extraList) + re.sub('\n', '\n\t', extraVar + str_tree(dict[i], level + 1, length))
+                    if level == length - 1:
+                        ret += "if len(arg" + str(level) + ") == 0" + ":\n\t" + re.sub(
+                            '\n', '\n\t', varS + extraList + extraVar + str_tree(dict[i], level + 1, length,""))
+                    else:
+                        ret += "if len(arg" + str(level) + ") == 0" + ":\n\t"+ re.sub(
+                            '\n', '\n\t', extraList + extraVar + str_tree(dict[i], level + 1, length,varS))
                 if j == lenD - 1:
                     ret += "\nelse:\n\traise ValueError\n"
             if j != lenD - 1:

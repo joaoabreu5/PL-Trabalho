@@ -56,6 +56,7 @@ def t_FPYINIT(t):
 
 def t_FPYCLOSE(t):
     r'"""'
+    t.lexer.lineno+=1
     return t
 
 

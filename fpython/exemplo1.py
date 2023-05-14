@@ -1,14 +1,14 @@
 """FPY
 
 deff ex{
-    case (x:xs,c,a,True) = a * 1;
+    case (x:xs,c,a,True) = y * 1;
     case (y:ys,d,b,False) = b * 2;
 }
 
 deff sum
 {
-    case ([]) = 0;
-    case (x:xs) = x + sum(xs); 
+    case ([],2) = 0;
+    case (x:xs,2) = x + sum(xs); 
 }
 
 deff soma_impares
@@ -23,9 +23,9 @@ deff filtra_impares
     case ([],2,a) = [];
     case ([],2,1) = [];
     case ([],3,1) = [];
-    case (x:xs,2,5) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
+    case (x:y:xs,2,5) = if ! (x % 2 == 0) then filtra_impares(xs) else x : filtra_impares(xs);
     case (x:xs,3,5) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
-    case (x:xs,3,7) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
+    case (x:xs,3,a) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
 }
 
 
@@ -33,16 +33,6 @@ deff soma_impares_2{
     case(x) = sum . filtra_impares(x);
 }
 
-deff mult
-{
-    case (a,b) = a*b;
-    case (b,g) = [1,2,3];
-}
-
-deff mult
-{
-    case () = 2;
-}
 
 
 deff id
@@ -94,6 +84,17 @@ deff concatena
     case(x:xs,ys) = ys;
     case(x,ys) = x : concatena([],ys);
 }
+
+deff mult
+{
+    case (a,b) = a*b;
+    case (b,g) = [1,2,3];
+}
+
+deff mult
+{
+    case () = 2;
+}
 """
 
 x = 4
@@ -102,3 +103,10 @@ print(y)
 l = [1, 2, 3, 4, 5]
 sum_l = f_sum_(l)
 print(sum_l)
+
+"""FPY
+deff concatena
+{
+    case() = 3;
+}
+"""
