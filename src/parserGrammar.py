@@ -2,7 +2,6 @@ import ply.yacc as yacc
 import lexer
 import verify
 import re
-import sys
 from caseInput import CaseInput
 
 tokens = lexer.tokens
@@ -624,3 +623,5 @@ def p_error(p):
 parser = yacc.yacc()
 parser.functions = {}
 parser.warnings = []
+
+
