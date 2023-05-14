@@ -38,13 +38,13 @@ def p_function_declarations(p):
         if line<p.parser.functions[func_name]["lineno"]:
             oldline = p.parser.functions[func_name]["lineno"]
             oldcol = p.parser.functions[func_name]["col"]
-            p.parser.warnings.append((line,col,f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
+            p.parser.warnings.append((oldline,oldcol,f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
             p.parser.functions[func_name] = {"lineno":line,"col":col,"python":p[1]["python"]}
         elif line == p.parser.functions[func_name]["lineno"]:
             if col < p.parser.functions[func_name]["col"]:
                 oldline = p.parser.functions[func_name]["lineno"]
                 oldcol = p.parser.functions[func_name]["col"]
-                p.parser.warnings.append((line,col,f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
+                p.parser.warnings.append((oldline,oldcol,f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
                 p.parser.functions[func_name] = {"lineno":line,"col":col,"python":p[1]["python"]}
             else:
                 p.parser.warnings.append((line,col,f"{line}:{col}: <Warning> Function '{func_name}' is already defined"))

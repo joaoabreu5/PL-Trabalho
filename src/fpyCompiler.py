@@ -5,14 +5,12 @@ import sys
 
 def repl_func(match):
     matched_str = match.group(0) 
-    ret_str = parser.parse(matched_str)
-    """ 
     try:
         ret_str = parser.parse(matched_str)
     except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)
-    """
+  
     return ret_str
 
 
