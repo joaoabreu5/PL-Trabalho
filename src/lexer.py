@@ -251,5 +251,5 @@ def find_column(input, token=None, lexpos=None):
         raise ValueError("Either token or lexpos must be provided")
 
 
-# Construir o analisador léxico
+
 lexer = lex.lex()

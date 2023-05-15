@@ -271,7 +271,7 @@ def p_list_elements(p):
     list_elements : bool
                   | bool COMMA list_elements
     """
-    # Armazena o tipo de cada elemento em uma lista
+
     if len(p) == 2:
         p[0] = p[1]
     else:
