@@ -109,4 +109,9 @@ deff concatena
 {
     case() = 3;
 }
+
+deff ex2
+{
+    case() = 3;
+}
 """

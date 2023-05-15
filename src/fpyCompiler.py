@@ -10,6 +10,7 @@ def repl_func(match,data):
     start_index = match.start()
     line_num = data.count('\n', 0, start_index) +1
     lexer.lexer.lineno = line_num
+    parser.newFunctions = []
     try:
         ret_str = parser.parse(matched_str)
     except Exception as e:

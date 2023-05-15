@@ -15,10 +15,10 @@ def p_fpy_program(p):
     """
     code = ""
 
-    for func in p.parser.functions:
+    for func in p.parser.newFunctions:
         code += p.parser.functions[func]["python"]
 
-    for func in p.parser.functions:
+    for func in p.parser.newFunctions:
         pattern = r"\b" + func + r"\b"
         replacement = "f_" + func + "_"
         code = re.sub(pattern, replacement, code)
@@ -51,6 +51,7 @@ def p_function_declarations(p):
             p.parser.warnings.append((line,col,f"{line}:{col}: <Warning> Function '{func_name}' is already defined"))
     else:
         p.parser.functions[func_name] = {"lineno":line,"col":col,"python":p[1]["python"]}
+        p.parser.newFunctions+=[func_name]
 
 
 
@@ -623,5 +624,6 @@ def p_error(p):
 parser = yacc.yacc()
 parser.functions = {}
 parser.warnings = []
+parser.newFunctions = []
 
 
