@@ -8,6 +8,15 @@ tokens = lexer.tokens
 
 start = 'fpy_program'
 
+def substitute_func_name(match, functions):
+    word = match.group(1)
+    fm = match.group(0)
+    if word in functions:
+        return "f_" + word + "_"+"("
+    return fm
+
+
+
 
 def p_fpy_program(p):
     """
@@ -15,14 +24,16 @@ def p_fpy_program(p):
     """
     code = ""
 
-    for func in p.parser.newFunctions:
+    for func in sorted(p.parser.newFunctions, key=lambda x: (p.parser.functions[x]["lineno"],p.parser.functions[x]["col"])):
         code += p.parser.functions[func]["python"]
 
-    for func in p.parser.newFunctions:
-        pattern = r"\b" + func + r"\b"
-        replacement = "f_" + func + "_"
-        code = re.sub(pattern, replacement, code)
-    p[0] = code
+
+    pattern = r'(\b\w+\b)\s*\('
+        
+    finalCode = re.sub(pattern, lambda match: substitute_func_name(match, p.parser.functions), code)
+    
+    
+    p[0] = finalCode
 
 
 def p_function_declarations(p):

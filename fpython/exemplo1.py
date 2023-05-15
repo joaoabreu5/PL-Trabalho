@@ -5,10 +5,10 @@ deff ex{
     case (y:ys,d,b,False) = b * 2;
 }
 
-deff sum
+deff sumf
 {
     case ([],2) = 0;
-    case (x:xs,2) = x + sum(xs); 
+    case (x:xs,2) = x + sumf(xs); 
 }
 
 deff soma_impares
@@ -30,12 +30,12 @@ deff filtra_impares
 
 
 deff soma_impares_2{
-    case(x) = sum . filtra_impares(x);
+    case(x) = sumf . filtra_impares(x);
 }
 
 
 
-deff id
+deff idF
 {
     case (a) = a;
 }
@@ -68,14 +68,14 @@ deff fib
 deff maximo
 {
     case([],a) = -3 + 5 - 2 ;
-    case(x:xs,b) = max (x,maximo (xs));
+    case(x:xs,b) = maximo (x,maximo (xs));
 }
 
-deff ord
+deff ordF
 {
     case([])=True;
     case(x:xs) = True && False;
-    case(x:y:xs) = x <= y && ord(y:xs);
+    case(x:y:xs) = x <= y && ordF(y:xs);
 }
 
 
@@ -98,10 +98,10 @@ deff mult
 """
 
 x = 4
-y = f_id_(x)
+y = f_idF_(x)
 print(y)
 l = [1, 2, 3, 4, 5]
-sum_l = f_sum_(l)
+sum_l = f_sumf_(l)
 print(sum_l)
 
 """FPY
@@ -112,6 +112,12 @@ deff concatena
 
 deff ex2
 {
-    case() = 3;
+    case() = concatena();
+}
+
+deff lenF
+{
+    case([]) = 0;
+    case(x:xs) = 1 + lenF(xs);
 }
 """

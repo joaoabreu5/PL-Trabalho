@@ -1,4 +1,7 @@
 import ply.lex as lex
+import builtins
+
+forbidden_names = dir(builtins)
 
 tokens = [
     'INTEGER',
@@ -212,7 +215,14 @@ def t_INTEGER(t):
 
 def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.type = reserved.get(t.value, 'IDENTIFIER')
+    if t.value in reserved:
+        t.type = reserved[t.value]
+    elif t.value in forbidden_names:
+        line = t.lexer.lineno
+        col = find_column(t.lexer.lexdata, t)
+        raise Exception(f"{line}:{col}: <lexer error> Reserved python token '{t.value}'")
+    else:
+        t.type = 'IDENTIFIER'
     return t
 
 
