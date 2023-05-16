@@ -117,7 +117,7 @@ def verify_EQUALTYPE(t1, t2):
 def verify_ERROR(t, line, col, expected, actual, expression):
     if t is None:
         raise Exception(
-            f"{line}:{col}: <type error> Couldn't match expected type '{expected}' with actual type '{actual}, in expression '{expression}'")
+            f"{line}:{col}: <type error> Couldn't match expected type '{expected}' with actual type '{actual}', in expression '{expression}'")
 
 
 def verify_group_by_level(lst):

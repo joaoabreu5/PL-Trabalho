@@ -21,22 +21,19 @@ def f_ex_(arg0, arg1, arg2, arg3):
 		raise ValueError
 	
 
-def f_sumf_(arg0, arg1):
+def f_maisum_(arg0):
+	x = arg0
+	return x + 1
+	
+
+def f_sumf_(arg0):
 	if len(arg0) >= 1:
-		if arg1 == 2:
-			x = arg0[0]
-			xs = arg0[1:]
-			return x + f_sumf_(xs)
-			
-		else:
-			raise ValueError
+		x = arg0[0]
+		xs = arg0[1:]
+		return x + f_sumf_(xs)
 		
 	elif len(arg0) == 0:
-		if arg1 == 2:
-			return 0
-			
-		else:
-			raise ValueError
+		return 0
 		
 	else:
 		raise ValueError
@@ -207,7 +204,7 @@ def f_concatena_(arg0, arg1):
 		x = arg0[0]
 		xs = arg0[1:]
 		ys = arg1
-		return ys
+		return f_mult_(ys)
 		
 	x = arg0
 	ys = arg1
@@ -228,20 +225,4 @@ print(y)
 l = [1, 2, 3, 4, 5]
 sum_l = f_sumf_(l)
 print(sum_l)
-
-def f_ex2_():
-	return f_concatena_()
-
-def f_lenF_(arg0):
-	if len(arg0) >= 1:
-		x = arg0[0]
-		xs = arg0[1:]
-		return 1 + f_lenF_(xs)
-		
-	elif len(arg0) == 0:
-		return 0
-		
-	else:
-		raise ValueError
-	
 

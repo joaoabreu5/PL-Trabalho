@@ -21,19 +21,23 @@ def substitute_func_name(match, functions):
 def p_fpy_program(p):
     """
     fpy_program : FPYINIT function_declarations FPYCLOSE
+                | FPYINIT FPYCLOSE
     """
-    code = ""
+    if len(p) == 3:
+        p[0] = ""
+    else:
+        code = ""
 
-    for func in sorted(p.parser.newFunctions, key=lambda x: (p.parser.functions[x]["lineno"],p.parser.functions[x]["col"])):
-        code += p.parser.functions[func]["python"]
+        for func in sorted(p.parser.newFunctions, key=lambda x: (p.parser.functions[x]["lineno"],p.parser.functions[x]["col"])):
+            code += p.parser.functions[func]["python"]
 
 
-    pattern = r'(\b\w+\b)\s*\('
+        pattern = r'(\b\w+\b)\s*\('
+            
+        finalCode = re.sub(pattern, lambda match: substitute_func_name(match, p.parser.functions), code)
         
-    finalCode = re.sub(pattern, lambda match: substitute_func_name(match, p.parser.functions), code)
-    
-    
-    p[0] = finalCode
+        
+        p[0] = finalCode
 
 
 def p_function_declarations(p):

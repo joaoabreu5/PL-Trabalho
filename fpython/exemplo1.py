@@ -5,10 +5,14 @@ deff ex{
     case (y:ys,d,b,False) = b * 2;
 }
 
+deff maisum{
+    case(x) = x+1;
+}
+
 deff sumf
 {
-    case ([],2) = 0;
-    case (x:xs,2) = x + sumf(xs); 
+    case ([]) = 0;
+    case (x:xs) = x + sumf(xs); 
 }
 
 deff soma_impares
@@ -81,7 +85,7 @@ deff ordF
 
 deff concatena
 {
-    case(x:xs,ys) = ys;
+    case(x:xs,ys) = mult(ys);
     case(x,ys) = x : concatena([],ys);
 }
 
@@ -105,19 +109,4 @@ sum_l = f_sumf_(l)
 print(sum_l)
 
 """FPY
-deff concatena
-{
-    case() = 3;
-}
-
-deff ex2
-{
-    case() = concatena();
-}
-
-deff lenF
-{
-    case([]) = 0;
-    case(x:xs) = 1 + lenF(xs);
-}
 """
