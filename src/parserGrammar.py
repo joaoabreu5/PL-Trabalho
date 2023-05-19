@@ -248,6 +248,17 @@ def p_case_headtail(p):
     """ 
     case_headtail : IDENTIFIER COLON case_headtail2 
     """
+    varsIn = [t[-1] for t in p[3]["infoVars"]]
+    if p[1] in varsIn:
+                for tup in sorted(p[3]["infoVars"], key=lambda x : x[1]):
+                    if tup[2] == p[1]:
+                        result = tup
+                        break
+                inputText = p.lexer.lexdata
+                line = result[0]
+                col = lexer.find_column(inputText,lexpos=result[1])
+                raise Exception (f"{line}:{col}: <scope error> Variable '{result[2]}' already in scope")
+        
     p[0] = {}
     p[0]["type"] = "list_ht"
     p[0]["vars"] = [p[1]] + p[3]["vars"]
