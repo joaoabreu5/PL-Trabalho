@@ -231,13 +231,14 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 
+
+t_ignore = ' \t'
+
+
 def t_error(t):
     line = t.lexer.lineno
     col = find_column(t.lexer.lexdata, t)
     raise Exception(f"{line}:{col}: <lexer error> Illegal character '{t.value[0]}'")
-
-
-t_ignore = ' \t'
 
 
 def find_column(input, token=None, lexpos=None):

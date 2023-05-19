@@ -26,6 +26,13 @@ def p_fpy_program(p):
     if len(p) == 3:
         p[0] = ""
     else:
+        for func in p[2]["func_called"]:
+            if func[2] not in p.parser.functions:
+                inputText = p.lexer.lexdata
+                line = func[0]
+                col = lexer.find_column(inputText,lexpos=func[1])
+                raise Exception (f"{line}:{col}: <scope error> Function '{func[2]}' not in scope")
+            
         code = ""
 
         for func in sorted(p.parser.newFunctions, key=lambda x: (p.parser.functions[x]["lineno"],p.parser.functions[x]["col"])):
@@ -45,6 +52,11 @@ def p_function_declarations(p):
     function_declarations : function_declaration
                           | function_declaration function_declarations
     """
+    p[0] = {}
+    if len(p) == 2:
+        p[0]["func_called"] = p[1]["func_called"]
+    else:
+        p[0]["func_called"] = p[1]["func_called"] + p[2]["func_called"]
     func_name = p[1]["func_name"]
     line = p[1]["lineno"]
     col = lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"])
@@ -120,6 +132,8 @@ def p_function_declaration(p):
     p[0]["python"] = full_function
     p[0]["lineno"] = p.lineno(1)
     p[0]["lexpos"] = p.lexpos(1)
+    p[0]["func_called"] = [item for d in p[4] for item in d["func_called"]]
+
 
 
 def p_function_body(p):
@@ -137,12 +151,22 @@ def p_case_statement(p):
     """ 
     case_statement : CASE case_input ASSIGN statement
     """
-
+    varsUsed = p[4]["vars"]
+    for var in sorted(varsUsed, key=lambda x: x[1]):
+        varsInfo = [item for d in p[2] for item in d["infoVars"]]
+        varsIn = [t[-1] for t in varsInfo]
+        if var[2] not in varsIn:
+            inputText = p.lexer.lexdata
+            line = var[0]
+            col = lexer.find_column(inputText,lexpos=var[1])
+            raise Exception (f"{line}:{col}: <scope error> Variable '{var[2]}' not in scope")
+        
     p[0] = {}
     p[0]["statement"] = p[4]["python"]
     p[0]["input"] = p[2]
     p[0]["lineno"] = p.lineno(1)
     p[0]["lexpos"] = p.lexpos(1)
+    p[0]["func_called"] = p[4]["func_called"]
 
 
 def p_case_input(p):
@@ -164,14 +188,26 @@ def p_case_arguments(p):
     if len(p) == 2:
         p[0] = [p[1]]
     else:
+        varsInfo = [item for d in p[3] for item in d["infoVars"]]
+        varsIn = [t[-1] for t in varsInfo]
+        for v in p[1]["infoVars"]:
+            if v[2] in varsIn:
+                for tup in sorted(varsInfo,key=lambda x : x[1]):
+                    if tup[2] == v[2]:
+                        result = tup
+                        break
+                inputText = p.lexer.lexdata
+                line = result[0]
+                col = lexer.find_column(inputText,lexpos=result[1])
+                raise Exception (f"{line}:{col}: <scope error> Variable '{result[2]}' already in scope")
         p[0] = [p[1]] + p[3]
+        
 
 
 def p_case_argument(p):
     """ 
     case_argument : constant
                   | case_list
-                  | ID
     """
     p[0] = p[1]
 
@@ -181,8 +217,10 @@ def p_constant(p):
     constant : FLO
              | INT
              | BOOL
+             | ID
     """
     p[0] = p[1]
+    p[0]["infoVars"] = p[1]["vars"]
 
 
 def p_case_list(p):
@@ -199,6 +237,11 @@ def p_case_empty(p):
     """
     p[0] = {}
     p[0]["type"] = "list_empty"
+    p[0]["vars"] = []
+    p[0]["infoVars"] = []
+    p[0]["lineno"] = p.lineno(1)
+    p[0]["lexpos"] = p.lexpos(1)
+    p[0]["lastpos"] = p.lexpos(2)
 
 
 def p_case_headtail(p):
@@ -208,6 +251,7 @@ def p_case_headtail(p):
     p[0] = {}
     p[0]["type"] = "list_ht"
     p[0]["vars"] = [p[1]] + p[3]["vars"]
+    p[0]["infoVars"] = [(p.lineno(1),p.lexpos(1),p[1])] + p[3]["infoVars"]
 
 
 def p_case_headtail2(p):
@@ -224,6 +268,7 @@ def p_case_headtailID(p):
     """
     p[0] = {}
     p[0]["vars"] = [p[1]]
+    p[0]["infoVars"] = [(p.lineno(1),p.lexpos(1),p[1])]
 
 
 def p_statement(p):
@@ -249,6 +294,8 @@ def p_statement(p):
         p[0]["lexpos"] = p.lexpos(1)
         p[0]["lineno"] = p.lineno(1)
         p[0]["lastpos"] = p[6]["lastpos"]
+        p[0]["vars"] = p[2]["vars"] + p[4]["vars"]+ p[6]["vars"]
+        p[0]["func_called"] = p[2]["func_called"]+p[4]["func_called"]+p[6]["func_called"]
 
 
 def p_list(p):
@@ -261,11 +308,15 @@ def p_list(p):
         p[0]["type"] = "list_"
         p[0]["python"] = "[]"
         p[0]["lastpos"] = p.lexpos(2) + 1
+        p[0]["func_called"] = []
+        p[0]["vars"] = []
     else:
         p[0] = {}
         p[0]["type"] = "list_" if p[2]["type"] == "any" else "list_" + p[2]["type"]
         p[0]["python"] = "[" + p[2]["python"] + "]"
         p[0]["lastpos"] = p.lexpos(3) + 1
+        p[0]["func_called"] = p[2]["func_called"]
+        p[0]["vars"] = p[2]["vars"]
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["lineno"] = p.lineno(1)
 
@@ -288,6 +339,9 @@ def p_list_elements(p):
         p[0]["python"] = p[1]["python"] + ", " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
+        
 
 
 def p_bool(p):
@@ -311,6 +365,8 @@ def p_bool(p):
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
 
 
 def p_join(p):
@@ -334,6 +390,8 @@ def p_join(p):
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
 
 
 def p_equality(p):
@@ -355,6 +413,8 @@ def p_equality(p):
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
 
 
 def p_rel(p):
@@ -377,6 +437,8 @@ def p_rel(p):
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
 
 
 def p_listop(p):
@@ -413,6 +475,8 @@ def p_listop(p):
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
 
 
 def p_expr(p):
@@ -437,6 +501,8 @@ def p_expr(p):
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
 
 
 def p_term(p):
@@ -463,6 +529,8 @@ def p_term(p):
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
 
 
 def p_exponential(p):
@@ -486,6 +554,8 @@ def p_exponential(p):
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
         p[0]["lastpos"] = p[3]["lastpos"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
 
 
 def p_unary(p):
@@ -513,6 +583,8 @@ def p_unary(p):
         p[0]["lexpos"] = p.lexpos(1)
         p[0]["lineno"] = p.lineno(1)
         p[0]["lastpos"] = p[2]["lastpos"]
+        p[0]["vars"] = p[2]["vars"]
+        p[0]["func_called"] = p[2]["func_called"]
 
 
 def p_factor(p):
@@ -545,6 +617,8 @@ def p_INT(p):
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["lineno"] = p.lineno(1)
     p[0]["lastpos"] = p.lexpos(1) + len(p[1])
+    p[0]["func_called"] = []
+    p[0]["vars"] = []
 
 
 def p_FLO(p):
@@ -557,6 +631,8 @@ def p_FLO(p):
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["lineno"] = p.lineno(1)
     p[0]["lastpos"] = p.lexpos(1) + len(p[1])
+    p[0]["func_called"] = []
+    p[0]["vars"] = []
 
 
 def p_BOOL(p):
@@ -569,6 +645,8 @@ def p_BOOL(p):
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["lineno"] = p.lineno(1)
     p[0]["lastpos"] = p.lexpos(1) + len(p[1])
+    p[0]["func_called"] = []
+    p[0]["vars"] = []
 
 
 def p_ID(p):
@@ -581,20 +659,25 @@ def p_ID(p):
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["lineno"] = p.lineno(1)
     p[0]["lastpos"] = p.lexpos(1) + len(p[1])
+    p[0]["func_called"] = []
+    p[0]["vars"] = [(p[0]["lineno"],p[0]["lexpos"],p[1])]
 
 
 def p_function_composition(p):
     """ 
-    function_composition : IDENTIFIER
-                         | IDENTIFIER PERIOD function_composition
+    function_composition : ID
+                         | ID PERIOD function_composition
     """
     p[0] = {}
+    p[0]["lexpos"] = p[1]["lexpos"]
+    p[0]["lineno"] = p[1]["lineno"]
+    p[0]["func_called"] = [(p[1]["lineno"],p[1]["lexpos"],p[1]["python"])]
     if len(p) == 2:
-        p[0]["python"] = p[1]
+        p[0]["python"] = p[1]["python"]
     else:
-        p[0]["python"] = p[1] + "(" + p[3]["python"] + ")"
-    p[0]["lexpos"] = p.lexpos(1)
-    p[0]["lineno"] = p.lineno(1)
+        p[0]["python"] = p[1]["python"] + "(" + p[3]["python"] + ")"
+        p[0]["func_called"] += p[3]["func_called"]
+   
 
 
 def p_function_call(p):
@@ -607,11 +690,15 @@ def p_function_call(p):
     if len(p) == 4:
         p[0]["python"] = p[1]["python"] + "()"
         p[0]["lastpos"] = p.lexpos(3) + 1
+        p[0]["vars"] = []
     else:
         p[0]["python"] = p[1]["python"] + "(" + p[3]["python"] + ")" if p[1]["python"][-1] != ")" else p[1]["python"][:-1] + "(" + p[3]["python"] + "))"
         p[0]["lastpos"] = p.lexpos(4) + 1
+        p[0]["vars"] = p[3]["vars"]
     p[0]["lexpos"] = p[1]["lexpos"]
     p[0]["lineno"] = p[1]["lineno"]
+    p[0]["func_called"] = p[1]["func_called"]
+    
 
 
 def p_function_arguments(p):
@@ -626,6 +713,8 @@ def p_function_arguments(p):
         p[0]["python"] = p[1]["python"] + ", " + p[3]["python"]
         p[0]["lexpos"] = p[1]["lexpos"]
         p[0]["lineno"] = p[1]["lineno"]
+        p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
+        p[0]["func_called"] = p[1]["func_called"] + p[3]["func_called"]
 
 
 def p_error(p):

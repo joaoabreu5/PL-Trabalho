@@ -1,8 +1,8 @@
 """FPY
 
 deff ex{
-    case (x:xs,c,a,True) = y * 1;
-    case (y:ys,d,b,False) = b * 2;
+    case (x:xs,c,a,True) = x * 1;
+    case (y:ys,d,b,False) = d * 2;
 }
 
 deff maisum{
@@ -52,9 +52,9 @@ deff func_const
 deff mult_list_Num
 {
     case ([],i,2) = [];
-    case ([],a,x) = i*x : mult_list_Num([],i,x-1);
-    case ([],a,v) = i*v : mult_list_Num([],i,x-1);
-    case ([],a,t) = i*t : mult_list_Num([],i,x-1);
+    case ([],a,x) = a*x : mult_list_Num([],a,x-1);
+    case ([],a,v) = a*v : mult_list_Num([],a,v-1);
+    case ([],a,t) = a*t : mult_list_Num([],a,t-1);
 }
 
 deff nzp

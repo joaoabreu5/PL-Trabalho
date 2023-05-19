@@ -5,14 +5,14 @@ def f_ex_(arg0, arg1, arg2, arg3):
 			xs = arg0[1:]
 			c = arg1
 			a = arg2
-			return y * 1
+			return x * 1
 			
 		elif arg3 == False:
 			y = arg0[0]
 			ys = arg0[1:]
 			d = arg1
 			b = arg2
-			return b * 2
+			return d * 2
 			
 		else:
 			raise ValueError
@@ -137,7 +137,7 @@ def f_mult_list_Num_(arg0, arg1, arg2):
 			
 		a = arg1
 		x = arg2
-		return [i * x] + f_mult_list_Num_([], i, x - 1)
+		return [a * x] + f_mult_list_Num_([], a, x - 1)
 		
 	else:
 		raise ValueError
