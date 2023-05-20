@@ -284,8 +284,8 @@ def p_case_headtailID(p):
 
 def p_statement(p):
     """ 
-    statement : IF bool THEN statement ELSE statement
-              | bool
+    statement : IF expr THEN statement ELSE statement
+              | expr
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -334,8 +334,8 @@ def p_list(p):
 
 def p_list_elements(p):
     """ 
-    list_elements : bool
-                  | bool COMMA list_elements
+    list_elements : expr
+                  | expr COMMA list_elements
     """
 
     if len(p) == 2:
@@ -357,7 +357,7 @@ def p_list_elements(p):
 
 def p_bool(p):
     """ 
-    bool : bool OR join 
+    expr : expr OR join 
          | join
     """
     if len(p) == 2:
@@ -454,9 +454,9 @@ def p_rel(p):
 
 def p_listop(p):
     """
-    listop : expr COLON listop
-           | expr CONCAT listop
-           | expr
+    listop : sum COLON listop
+           | sum CONCAT listop
+           | sum
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -490,10 +490,10 @@ def p_listop(p):
         p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
 
 
-def p_expr(p):
+def p_sum(p):
     """ 
-    expr : expr PLUS term
-         | expr MINUS term
+    sum : sum PLUS term
+         | sum MINUS term
          | term
     """
     if len(p) == 2:
@@ -600,7 +600,7 @@ def p_unary(p):
 
 def p_factor(p):
     """
-    factor : LPAREN bool RPAREN
+    factor : LPAREN expr RPAREN
            | ID
            | function_call
            | INT
@@ -714,8 +714,8 @@ def p_function_call(p):
 
 def p_function_arguments(p):
     """ 
-    function_arguments : bool
-                       | bool COMMA function_arguments
+    function_arguments : expr
+                       | expr COMMA function_arguments
     """
     if len(p) == 2:
         p[0] = p[1]
