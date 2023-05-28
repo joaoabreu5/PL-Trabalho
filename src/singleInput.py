@@ -1,6 +1,3 @@
-import copy
-
-
 class SingleInput:
     def __init__(self, inputDict, extraVar=None, extraList=None):
         self.inputDict = inputDict

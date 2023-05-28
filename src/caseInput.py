@@ -1,5 +1,4 @@
 from singleInput import SingleInput
-import copy
 
 
 class CaseInput:

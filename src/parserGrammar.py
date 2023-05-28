@@ -8,14 +8,13 @@ tokens = lexer.tokens
 
 start = 'fpy_program'
 
+
 def substitute_func_name(match, functions):
     word = match.group(1)
     fm = match.group(0)
     if word in functions:
         return "f_" + word + "_"+"("
     return fm
-
-
 
 
 def p_fpy_program(p):
@@ -30,20 +29,15 @@ def p_fpy_program(p):
             if func[2] not in p.parser.functions:
                 inputText = p.lexer.lexdata
                 line = func[0]
-                col = lexer.find_column(inputText,lexpos=func[1])
-                raise Exception (f"{line}:{col}: <scope error> Function '{func[2]}' not in scope")
+                col = lexer.find_column(inputText, lexpos=func[1])
+                raise Exception(f"{line}:{col}: <scope error> Function '{func[2]}' not in scope")
             
         code = ""
-
-        for func in sorted(p.parser.newFunctions, key=lambda x: (p.parser.functions[x]["lineno"],p.parser.functions[x]["col"])):
+        for func in sorted(p.parser.newFunctions, key=lambda x: (p.parser.functions[x]["lineno"], p.parser.functions[x]["col"])):
             code += p.parser.functions[func]["python"]
 
-
         pattern = r'(\b\w+\b)\s*\('
-            
         finalCode = re.sub(pattern, lambda match: substitute_func_name(match, p.parser.functions), code)
-        
-        
         p[0] = finalCode
 
 
@@ -61,25 +55,24 @@ def p_function_declarations(p):
     line = p[1]["lineno"]
     col = lexer.find_column(p.lexer.lexdata, lexpos=p[1]["lexpos"])
     if func_name in p.parser.functions:
-        if line<p.parser.functions[func_name]["lineno"]:
+        if line < p.parser.functions[func_name]["lineno"]:
             oldline = p.parser.functions[func_name]["lineno"]
             oldcol = p.parser.functions[func_name]["col"]
-            p.parser.warnings.append((oldline,oldcol,f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
-            p.parser.functions[func_name] = {"lineno":line,"col":col,"python":p[1]["python"]}
+            p.parser.warnings.append((oldline, oldcol, f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
+            p.parser.functions[func_name] = {"lineno": line, "col": col, "python": p[1]["python"]}
         elif line == p.parser.functions[func_name]["lineno"]:
             if col < p.parser.functions[func_name]["col"]:
                 oldline = p.parser.functions[func_name]["lineno"]
                 oldcol = p.parser.functions[func_name]["col"]
-                p.parser.warnings.append((oldline,oldcol,f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
-                p.parser.functions[func_name] = {"lineno":line,"col":col,"python":p[1]["python"]}
+                p.parser.warnings.append((oldline, oldcol, f"{oldline}:{oldcol}: <Warning> Function '{func_name}' is already defined"))
+                p.parser.functions[func_name] = {"lineno": line, "col": col, "python": p[1]["python"]}
             else:
-                p.parser.warnings.append((line,col,f"{line}:{col}: <Warning> Function '{func_name}' is already defined"))
+                p.parser.warnings.append((line, col, f"{line}:{col}: <Warning> Function '{func_name}' is already defined"))
         else:
-            p.parser.warnings.append((line,col,f"{line}:{col}: <Warning> Function '{func_name}' is already defined"))
+            p.parser.warnings.append((line, col, f"{line}:{col}: <Warning> Function '{func_name}' is already defined"))
     else:
-        p.parser.functions[func_name] = {"lineno":line,"col":col,"python":p[1]["python"]}
-        p.parser.newFunctions+=[func_name]
-
+        p.parser.functions[func_name] = {"lineno": line, "col": col, "python": p[1]["python"]}
+        p.parser.newFunctions += [func_name]
 
 
 def p_function_declaration(p):
@@ -98,7 +91,7 @@ def p_function_declaration(p):
         entry = CaseInput(l["input"])
         if entry in setInput:
             toBeRemoved.append(l)
-            p.parser.warnings.append((lineL,colL,f"{lineL}:{colL}: <Warning> Redundant input in pattern matching for function '{p[2]}'")),
+            p.parser.warnings.append((lineL, colL, f"{lineL}:{colL}: <Warning> Redundant input in pattern matching for function '{p[2]}'")),
         else:
             setInput.add(entry)
 
@@ -110,12 +103,12 @@ def p_function_declaration(p):
 
     lenArgs = setLen.pop()
     if lenArgs > 0:
-        sortedIn = sorted(list(setInput),reverse=True)
+        sortedIn = sorted(list(setInput), reverse=True)
         lista = map(lambda x: x.inputCase, sortedIn)
         listaL = list(lista)
         tree = verify.verify_group_by_level(listaL)
         tree = verify.verify_fill(p[4], tree)
-        pythonString = verify.str_tree(tree, 0, lenArgs,"")
+        pythonString = verify.str_tree(tree, 0, lenArgs, "")
     else:
         pythonString = p[4][0]["statement"]
 
@@ -133,7 +126,6 @@ def p_function_declaration(p):
     p[0]["lineno"] = p.lineno(1)
     p[0]["lexpos"] = p.lexpos(1)
     p[0]["func_called"] = [item for d in p[4] for item in d["func_called"]]
-
 
 
 def p_function_body(p):
@@ -158,8 +150,8 @@ def p_case_statement(p):
         if var[2] not in varsIn:
             inputText = p.lexer.lexdata
             line = var[0]
-            col = lexer.find_column(inputText,lexpos=var[1])
-            raise Exception (f"{line}:{col}: <scope error> Variable '{var[2]}' not in scope")
+            col = lexer.find_column(inputText, lexpos=var[1])
+            raise Exception(f"{line}:{col}: <scope error> Variable '{var[2]}' not in scope")
         
     p[0] = {}
     p[0]["statement"] = p[4]["python"]
@@ -192,17 +184,16 @@ def p_case_arguments(p):
         varsIn = [t[-1] for t in varsInfo]
         for v in p[1]["infoVars"]:
             if v[2] in varsIn:
-                for tup in sorted(varsInfo,key=lambda x : x[1]):
+                for tup in sorted(varsInfo, key=lambda x: x[1]):
                     if tup[2] == v[2]:
                         result = tup
                         break
                 inputText = p.lexer.lexdata
                 line = result[0]
-                col = lexer.find_column(inputText,lexpos=result[1])
-                raise Exception (f"{line}:{col}: <scope error> Variable '{result[2]}' already in scope")
+                col = lexer.find_column(inputText, lexpos=result[1])
+                raise Exception(f"{line}:{col}: <scope error> Variable '{result[2]}' already in scope")
         p[0] = [p[1]] + p[3]
         
-
 
 def p_case_argument(p):
     """ 
@@ -250,19 +241,19 @@ def p_case_headtail(p):
     """
     varsIn = [t[-1] for t in p[3]["infoVars"]]
     if p[1] in varsIn:
-                for tup in sorted(p[3]["infoVars"], key=lambda x : x[1]):
-                    if tup[2] == p[1]:
-                        result = tup
-                        break
-                inputText = p.lexer.lexdata
-                line = result[0]
-                col = lexer.find_column(inputText,lexpos=result[1])
-                raise Exception (f"{line}:{col}: <scope error> Variable '{result[2]}' already in scope")
+        for tup in sorted(p[3]["infoVars"], key=lambda x: x[1]):
+            if tup[2] == p[1]:
+                result = tup
+                break
+        inputText = p.lexer.lexdata
+        line = result[0]
+        col = lexer.find_column(inputText, lexpos=result[1])
+        raise Exception(f"{line}:{col}: <scope error> Variable '{result[2]}' already in scope")
         
     p[0] = {}
     p[0]["type"] = "list_ht"
     p[0]["vars"] = [p[1]] + p[3]["vars"]
-    p[0]["infoVars"] = [(p.lineno(1),p.lexpos(1),p[1])] + p[3]["infoVars"]
+    p[0]["infoVars"] = [(p.lineno(1), p.lexpos(1), p[1])] + p[3]["infoVars"]
 
 
 def p_case_headtail2(p):
@@ -279,7 +270,7 @@ def p_case_headtailID(p):
     """
     p[0] = {}
     p[0]["vars"] = [p[1]]
-    p[0]["infoVars"] = [(p.lineno(1),p.lexpos(1),p[1])]
+    p[0]["infoVars"] = [(p.lineno(1), p.lexpos(1), p[1])]
 
 
 def p_statement(p):
@@ -305,7 +296,7 @@ def p_statement(p):
         p[0]["lexpos"] = p.lexpos(1)
         p[0]["lineno"] = p.lineno(1)
         p[0]["lastpos"] = p[6]["lastpos"]
-        p[0]["vars"] = p[2]["vars"] + p[4]["vars"]+ p[6]["vars"]
+        p[0]["vars"] = p[2]["vars"] + p[4]["vars"] + p[6]["vars"]
         p[0]["func_called"] = p[2]["func_called"]+p[4]["func_called"]+p[6]["func_called"]
 
 
@@ -353,7 +344,6 @@ def p_list_elements(p):
         p[0]["vars"] = p[1]["vars"] + p[3]["vars"]
         p[0]["func_called"] = p[1]["func_called"]+p[3]["func_called"]
         
-
 
 def p_expr(p):
     """ 
@@ -671,7 +661,7 @@ def p_id(p):
     p[0]["lineno"] = p.lineno(1)
     p[0]["lastpos"] = p.lexpos(1) + len(p[1])
     p[0]["func_called"] = []
-    p[0]["vars"] = [(p[0]["lineno"],p[0]["lexpos"],p[1])]
+    p[0]["vars"] = [(p[0]["lineno"], p[0]["lexpos"], p[1])]
 
 
 def p_function_composition(p):
@@ -682,14 +672,13 @@ def p_function_composition(p):
     p[0] = {}
     p[0]["lexpos"] = p[1]["lexpos"]
     p[0]["lineno"] = p[1]["lineno"]
-    p[0]["func_called"] = [(p[1]["lineno"],p[1]["lexpos"],p[1]["python"])]
+    p[0]["func_called"] = [(p[1]["lineno"], p[1]["lexpos"], p[1]["python"])]
     if len(p) == 2:
         p[0]["python"] = p[1]["python"]
     else:
         p[0]["python"] = p[1]["python"] + "(" + p[3]["python"] + ")"
         p[0]["func_called"] += p[3]["func_called"]
    
-
 
 def p_function_call(p):
     """ 
@@ -710,7 +699,6 @@ def p_function_call(p):
     p[0]["lineno"] = p[1]["lineno"]
     p[0]["func_called"] = p[1]["func_called"]
     
-
 
 def p_function_arguments(p):
     """ 
@@ -740,5 +728,3 @@ parser = yacc.yacc()
 parser.functions = {}
 parser.warnings = []
 parser.newFunctions = []
-
-

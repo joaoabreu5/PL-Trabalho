@@ -4,11 +4,10 @@ import re
 import sys
 
 
-
-def repl_func(match,data):
+def repl_func(match, data):
     matched_str = match.group(0) 
     start_index = match.start()
-    line_num = data.count('\n', 0, start_index) +1
+    line_num = data.count('\n', 0, start_index) + 1
     lexer.lexer.lineno = line_num
     parser.newFunctions = []
     try:
@@ -18,6 +17,7 @@ def repl_func(match,data):
         sys.exit(1)
   
     return ret_str
+
 
 erFPY = re.compile(r'"""FPY.+?"""', re.DOTALL)
 

@@ -59,7 +59,7 @@ def t_FPYINIT(t):
 
 def t_FPYCLOSE(t):
     r'"""'
-    t.lexer.lineno+=1
+    t.lexer.lineno += 1
     return t
 
 
@@ -231,7 +231,6 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 
-
 t_ignore = ' \t'
 
 
@@ -250,7 +249,6 @@ def find_column(input, token=None, lexpos=None):
         return lexpos - line_start + 1
     else:
         raise ValueError("Either token or lexpos must be provided")
-
 
 
 lexer = lex.lex()
