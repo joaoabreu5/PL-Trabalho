@@ -214,10 +214,10 @@ def p_case_argument(p):
 
 def p_constant(p):
     """ 
-    constant : FLO
-             | INT
-             | BOOL
-             | ID
+    constant : flo
+             | int
+             | bool
+             | id
     """
     p[0] = p[1]
     p[0]["infoVars"] = p[1]["vars"]
@@ -355,7 +355,7 @@ def p_list_elements(p):
         
 
 
-def p_bool(p):
+def p_expr(p):
     """ 
     expr : expr OR join 
          | join
@@ -601,11 +601,11 @@ def p_unary(p):
 def p_factor(p):
     """
     factor : LPAREN expr RPAREN
-           | ID
+           | id
            | function_call
-           | INT
-           | FLO
-           | BOOL
+           | int
+           | flo
+           | bool
            | list 
     """
     if len(p) > 2:
@@ -618,9 +618,9 @@ def p_factor(p):
         p[0] = p[1]
 
 
-def p_INT(p):
+def p_int(p):
     """ 
-    INT : INTEGER
+    int : INTEGER
     """
     p[0] = {}
     p[0]["type"] = "num"
@@ -632,9 +632,9 @@ def p_INT(p):
     p[0]["vars"] = []
 
 
-def p_FLO(p):
+def p_flo(p):
     """ 
-    FLO : FLOAT
+    flo : FLOAT
     """
     p[0] = {}
     p[0]["type"] = "num"
@@ -646,9 +646,9 @@ def p_FLO(p):
     p[0]["vars"] = []
 
 
-def p_BOOL(p):
+def p_bool(p):
     """ 
-    BOOL : BOOLEAN
+    bool : BOOLEAN
     """
     p[0] = {}
     p[0]["type"] = "boolean"
@@ -660,9 +660,9 @@ def p_BOOL(p):
     p[0]["vars"] = []
 
 
-def p_ID(p):
+def p_id(p):
     """ 
-    ID : IDENTIFIER
+    id : IDENTIFIER
     """
     p[0] = {}
     p[0]["type"] = "any"
@@ -676,8 +676,8 @@ def p_ID(p):
 
 def p_function_composition(p):
     """ 
-    function_composition : ID
-                         | ID PERIOD function_composition
+    function_composition : id
+                         | id PERIOD function_composition
     """
     p[0] = {}
     p[0]["lexpos"] = p[1]["lexpos"]
