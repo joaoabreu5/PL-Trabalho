@@ -226,3 +226,4 @@ l = [1, 2, 3, 4, 5]
 sum_l = f_sumf_(l)
 print(sum_l)
 
+

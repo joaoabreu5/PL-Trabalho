@@ -23,7 +23,6 @@ deff soma_impares
 
 deff filtra_impares
 {
-    
     case ([],2,a) = [];
     case ([],2,1) = [];
     case ([],3,1) = [];
@@ -32,12 +31,9 @@ deff filtra_impares
     case (x:xs,3,a) = if ! (x % 2 == 0) then filtra_impares(xs) else x ++ filtra_impares(xs);
 }
 
-
-deff soma_impares_2{
+deff soma_impares_2 {
     case(x) = sumf . filtra_impares(x);
 }
-
-
 
 deff idF
 {
@@ -81,7 +77,6 @@ deff ordF
     case(x:xs) = True && False;
     case(x:y:xs) = x <= y && ordF(y:xs);
 }
-
 
 deff concatena
 {
